@@ -270,7 +270,7 @@ function App() {
     <>
       <div className="placeholder-icon">
         <img 
-          src="/Frame 31 1.svg" 
+          src="/Frame 31.png" 
           alt="Frame 31"
           className="frame-icon"
         />
