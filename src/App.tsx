@@ -268,13 +268,13 @@ function App() {
 
   const renderPlayContent = () => (
     <>
-      <div className="placeholder-icon">
+      {/* <div className="placeholder-icon">
         <img 
           src="/Frame 31.png" 
           alt="Frame 31"
           className="frame-icon"
         />
-      </div>
+      </div> */}
       
       <div className="content-container">
         <div className="image-box">
@@ -398,9 +398,9 @@ function App() {
   return (
     <div className="app">
       {/* Header with Logo */}
-      {/* <div className="header">
+      <div className="header">
         <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
-      </div> */}
+      </div>
       
       {/* Tabs */}
       <div className="tabs">
