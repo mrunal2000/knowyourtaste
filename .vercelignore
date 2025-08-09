@@ -1,0 +1,25 @@
+# Ignore scraping and development files
+pinterest_*.py
+requirements_*.txt
+scrape_*.sh
+*_scraper.py
+scraped_*
+outfit_collection_*
+fashion_outfits/
+api_outfits/
+test_scraped/
+
+# Development and report files
+*.md
+test_*.html
+verify_*.js
+
+# Environment files
+.env
+
+# Docker files (not needed for Vercel)
+docker-compose*.yml
+
+# Build artifacts
+node_modules/
+.DS_Store
