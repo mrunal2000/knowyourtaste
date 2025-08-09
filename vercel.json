@@ -7,6 +7,10 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "api/analyze.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -19,11 +23,6 @@
       "dest": "/index.html"
     }
   ],
-  "functions": {
-    "api/analyze.js": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "OPENAI_API_KEY": "@openai_api_key"
   }
