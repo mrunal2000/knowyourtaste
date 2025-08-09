@@ -399,7 +399,7 @@ function App() {
     <div className="app">
       {/* Header with Logo */}
       <div className="header">
-        <img src="/frame31.svg" alt="Fashion Taster Logo" className="app-logo" />
+        <img src="/frame31.png" alt="Fashion Taster Logo" className="app-logo" />
       </div>
       
       {/* Tabs */}
