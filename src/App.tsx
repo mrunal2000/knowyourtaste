@@ -398,9 +398,9 @@ function App() {
   return (
     <div className="app">
       {/* Header with Logo */}
-      <div className="header">
+      {/* <div className="header">
         <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
-      </div>
+      </div> */}
       
       {/* Tabs */}
       <div className="tabs">
