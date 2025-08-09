@@ -92,27 +92,19 @@ body {
   color: #0056b3;
 }
 
-.privacy-policy-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.privacy-policy-page {
+  min-height: 100vh;
+  background-color: #FEFFF1;
+  padding: 20px;
 }
 
-.privacy-policy-modal {
+.privacy-policy-container {
+  max-width: 800px;
+  margin: 0 auto;
   background: white;
   border-radius: 8px;
-  max-width: 800px;
-  max-height: 80vh;
-  width: 90%;
-  overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
 .privacy-policy-header {
@@ -121,36 +113,28 @@ body {
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
   background: white;
-  border-radius: 8px 8px 0 0;
 }
 
-.privacy-policy-header h2 {
+.privacy-policy-header h1 {
   margin: 0;
   color: #333;
-  font-size: 24px;
-}
-
-.close-button {
-  background: none;
-  border: none;
   font-size: 28px;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
 }
 
-.close-button:hover {
-  background-color: #f0f0f0;
-  color: #333;
+.back-to-app {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 8px 16px;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.back-to-app:hover {
+  background-color: #007bff;
+  color: white;
 }
 
 .privacy-policy-content {

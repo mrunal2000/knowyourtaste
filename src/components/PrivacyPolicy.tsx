@@ -1,33 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const PrivacyPolicy: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const openPrivacyPolicy = () => {
-    setIsOpen(true);
-  };
-
-  const closePrivacyPolicy = () => {
-    setIsOpen(false);
-  };
-
-  if (!isOpen) {
-    return (
-      <button 
-        onClick={openPrivacyPolicy}
-        className="privacy-policy-link"
-      >
-        Privacy Policy
-      </button>
-    );
-  }
-
   return (
-    <div className="privacy-policy-overlay" onClick={closePrivacyPolicy}>
-      <div className="privacy-policy-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="privacy-policy-page">
+      <div className="privacy-policy-container">
         <div className="privacy-policy-header">
-          <h2>Privacy Policy</h2>
-          <button onClick={closePrivacyPolicy} className="close-button">×</button>
+          <h1>Privacy Policy</h1>
+          <Link to="/" className="back-to-app">← Back to Fashion Taster</Link>
         </div>
         
         <div className="privacy-policy-content">

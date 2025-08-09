@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route, Link } from 'react-router-dom'
 import './App.css'
 import PrivacyPolicy from './components/PrivacyPolicy'
 
@@ -396,43 +397,48 @@ function App() {
   )
 
   return (
-    <div className="app">
-      {/* Header with Logo */}
-      {/* <div className="header">
-        <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
-      </div> */}
-      
-      {/* Tabs */}
-      <div className="tabs">
-        <button 
-          className={`tab ${activeTab === 'play' ? 'active' : ''}`}
-          onClick={() => setActiveTab('play')}
-        >
-          play
-        </button>
-        <button 
-          className={`tab ${activeTab === 'your wall' ? 'active' : ''}`}
-          onClick={() => setActiveTab('your wall')}
-        >
-          your wall
-        </button>
-      </div>
+    <Routes>
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/" element={
+        <div className="app">
+          {/* Header with Logo */}
+          {/* <div className="header">
+            <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
+          </div> */}
+          
+          {/* Tabs */}
+          <div className="tabs">
+            <button 
+              className={`tab ${activeTab === 'play' ? 'active' : ''}`}
+              onClick={() => setActiveTab('play')}
+            >
+              play
+            </button>
+            <button 
+              className={`tab ${activeTab === 'your wall' ? 'active' : ''}`}
+              onClick={() => setActiveTab('your wall')}
+            >
+              your wall
+            </button>
+          </div>
 
-      {/* Content based on active tab */}
-      {activeTab === 'play' ? renderPlayContent() : renderYourWallContent()}
-      
-      {/* Footer */}
-      <footer className="app-footer">
-        <div className="footer-content">
-          <div className="footer-left">
-            <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
-          </div>
-          <div className="footer-right">
-            <PrivacyPolicy />
-          </div>
+          {/* Content based on active tab */}
+          {activeTab === 'play' ? renderPlayContent() : renderYourWallContent()}
+          
+          {/* Footer */}
+          <footer className="app-footer">
+            <div className="footer-content">
+              <div className="footer-left">
+                <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
+              </div>
+              <div className="footer-right">
+                <Link to="/privacy" className="privacy-policy-link">Privacy Policy</Link>
+              </div>
+            </div>
+          </footer>
         </div>
-      </footer>
-    </div>
+      } />
+    </Routes>
   )
 }
 
