@@ -1,24 +1,38 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = 3002;
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  const openaiKeyConfigured = !!process.env.OPENAI_API_KEY;
+  const openaiKeyLength = process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0;
+  const openaiKeyPrefix = process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 7) : 'none';
+
+  res.json({ 
+    status: 'Local API is working',
+    timestamp: new Date().toISOString(),
+    environment: {
+      openaiKeyConfigured,
+      openaiKeyLength,
+      openaiKeyPrefix: openaiKeyPrefix === 'none' ? 'none' : `${openaiKeyPrefix}...`,
+      nodeEnv: process.env.NODE_ENV || 'development'
+    }
+  });
 });
 
-export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+// OpenAI analyze endpoint (same as Vercel)
+app.post('/api/analyze', async (req, res) => {
   try {
     const { image } = req.body;
 
@@ -26,8 +40,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No image provided' });
     }
 
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        details: 'Please set OPENAI_API_KEY environment variable'
+      });
+    }
+
     console.log('Received image request, image length:', image ? image.length : 0);
     console.log('OpenAI API key configured:', !!process.env.OPENAI_API_KEY);
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     // Convert base64 to data URL format that OpenAI expects
     const imageUrl = `data:image/jpeg;base64,${image}`;
@@ -84,4 +109,13 @@ export default async function handler(req, res) {
       details: error.message
     });
   }
-}
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Local test server running on http://localhost:${PORT}`);
+  console.log(`📝 Test endpoint: http://localhost:${PORT}/api/test`);
+  console.log(`🔍 OpenAI API key configured: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
+  if (process.env.OPENAI_API_KEY) {
+    console.log(`🔑 API key prefix: ${process.env.OPENAI_API_KEY.substring(0, 7)}...`);
+  }
+});

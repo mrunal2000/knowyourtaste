@@ -118,9 +118,14 @@ function App() {
       const base64Data = base64.split(',')[1]; // Remove data:image/jpeg;base64, prefix
       console.log('Base64 data length (without prefix):', base64Data.length);
 
-      // Call Vercel API route that interfaces with OpenAI
-      console.log('Calling /api/analyze endpoint...');
-      const apiResponse = await fetch('/api/analyze', {
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/analyze' : '/api/analyze';
+      
+      console.log('Using API URL:', apiUrl);
+      console.log('Calling analyze endpoint...');
+      
+      const apiResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,9 +198,8 @@ function App() {
       setIsGeneratingBlurb(true);
       setClickedImageIndex(index);
       
-      // For now, we'll use the existing metadata as the blurb
-      // You can create a separate API endpoint for this if needed
-      const blurb = `Based on this outfit: ${metadata}. To recreate this look, focus on the key elements and adapt them to your personal style.`
+      // Generate focused outfit recreation tips
+      const blurb = `To recreate this look: ${metadata.split('\n')[0]}. Focus on the key silhouette and color combination. Add similar accessories to complete the outfit.`
       setSelectedImageBlurb(blurb);
     } catch (error) {
       console.error('Error generating outfit blurb:', error);
@@ -293,7 +297,13 @@ function App() {
             <div className="smiley">❤️</div>
             <div className="analysis-content">
               {currentMetadata ? (
-                <div dangerouslySetInnerHTML={{ __html: formatAIText(currentMetadata) }} />
+                <div className="play-metadata">
+                  {currentMetadata.split('\n').slice(0, 3).map((line, index) => (
+                    <div key={index} className="metadata-line">
+                      {line.trim()}
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div>Analyzing your style...</div>
               )}
@@ -359,7 +369,14 @@ function App() {
                 />
                 <div className="polaroid">
                   <div className="polaroid-metadata">
-                    {item.metadata}
+                    <h4>Style Analysis:</h4>
+                    <div className="metadata-summary">
+                      {item.metadata.split('\n').slice(0, 2).map((line, index) => (
+                        <div key={index} className="metadata-line">
+                          {line.trim()}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   {clickedImageIndex === index && selectedImageBlurb && (
                     <div className="outfit-blurb">
@@ -371,7 +388,9 @@ function App() {
                       ) : (
                         <div className="blurb-content">
                           <h4>How to Recreate This Look:</h4>
-                          <div dangerouslySetInnerHTML={{ __html: formatAIText(selectedImageBlurb) }} />
+                          <div className="recreation-tips">
+                            {selectedImageBlurb}
+                          </div>
                         </div>
                       )}
                     </div>

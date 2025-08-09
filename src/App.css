@@ -477,6 +477,48 @@ body {
   color: #0C20F4 !important;
 }
 
+/* Play page metadata styling */
+.play-metadata {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.metadata-line {
+  margin-bottom: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metadata-line:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+/* Your Wall metadata styling */
+.metadata-summary {
+  margin-top: 8px;
+}
+
+.metadata-summary .metadata-line {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metadata-summary .metadata-line:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.recreation-tips {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  margin-top: 10px;
+}
+
 /* Button container */
 .button-container {
   margin-top: 30px;
