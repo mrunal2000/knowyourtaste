@@ -26,6 +26,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No image provided' });
     }
 
+    console.log('Received image request, image length:', image ? image.length : 0);
+    console.log('OpenAI API key configured:', !!process.env.OPENAI_API_KEY);
+
+    // Convert base64 to data URL format that OpenAI expects
+    const imageUrl = `data:image/jpeg;base64,${image}`;
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -39,7 +45,7 @@ export default async function handler(req, res) {
             {
               type: "image_url",
               image_url: {
-                url: image
+                url: imageUrl
               }
             }
           ]
@@ -49,10 +55,17 @@ export default async function handler(req, res) {
     });
 
     const analysis = response.choices[0].message.content;
+    console.log('OpenAI analysis generated successfully, length:', analysis.length);
 
     res.status(200).json({ analysis });
   } catch (error) {
     console.error('OpenAI API error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      type: error.type
+    });
     
     if (error.code === 'insufficient_quota') {
       return res.status(402).json({ 
@@ -67,7 +80,8 @@ export default async function handler(req, res) {
     }
 
     res.status(500).json({ 
-      error: 'Failed to analyze image. Please try again.' 
+      error: 'Failed to analyze image. Please try again.',
+      details: error.message
     });
   }
 }

@@ -97,31 +97,52 @@ function App() {
   const generateMetadata = async (imageUrl: string) => {
     setIsGeneratingMetadata(true)
     try {
+      console.log('Starting metadata generation for image:', imageUrl);
+      
       // Convert image to base64
       const response = await fetch(imageUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+      
       const blob = await response.blob()
+      console.log('Image blob size:', blob.size, 'bytes');
+      
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader()
         reader.onloadend = () => resolve(reader.result as string)
         reader.readAsDataURL(blob)
       })
 
+      console.log('Base64 conversion complete, length:', base64.length);
+      const base64Data = base64.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+      console.log('Base64 data length (without prefix):', base64Data.length);
+
       // Call Vercel API route that interfaces with OpenAI
+      console.log('Calling /api/analyze endpoint...');
       const apiResponse = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          image: base64.split(',')[1], // Remove data:image/jpeg;base64, prefix
+          image: base64Data,
         }),
       })
 
+      console.log('API response status:', apiResponse.status);
+      console.log('API response ok:', apiResponse.ok);
+
       if (!apiResponse.ok) {
-        throw new Error('Failed to generate metadata')
+        const errorText = await apiResponse.text();
+        console.error('API error response:', errorText);
+        throw new Error(`Failed to generate metadata: ${apiResponse.status} - ${errorText}`);
       }
 
       const data = await apiResponse.json()
+      console.log('API response data:', data);
+      console.log('Analysis content:', data.analysis);
+      
       return data.analysis // Changed from data.metadata to data.analysis to match the API response
     } catch (error) {
       console.error('Error generating metadata:', error)
