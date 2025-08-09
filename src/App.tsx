@@ -397,6 +397,11 @@ function App() {
 
   return (
     <div className="app">
+      {/* Header with Logo */}
+      <div className="header">
+        <img src="/frame31.svg" alt="Fashion Taster Logo" className="app-logo" />
+      </div>
+      
       {/* Tabs */}
       <div className="tabs">
         <button 
