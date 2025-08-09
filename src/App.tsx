@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import PrivacyPolicy from './components/PrivacyPolicy'
 
 interface ImageWithMetadata {
   image: string
@@ -419,6 +420,18 @@ function App() {
 
       {/* Content based on active tab */}
       {activeTab === 'play' ? renderPlayContent() : renderYourWallContent()}
+      
+      {/* Footer */}
+      <footer className="app-footer">
+        <div className="footer-content">
+          <div className="footer-left">
+            <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
+          </div>
+          <div className="footer-right">
+            <PrivacyPolicy />
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
