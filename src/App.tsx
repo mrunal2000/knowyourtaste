@@ -10,7 +10,6 @@ interface ImageWithMetadata {
 }
 
 function App() {
-  const [showAnalysis, setShowAnalysis] = useState(false)
   const [activeTab, setActiveTab] = useState('play')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [likedImages, setLikedImages] = useState<ImageWithMetadata[]>([])
@@ -21,6 +20,8 @@ function App() {
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
+  const [likeMessage, setLikeMessage] = useState<string>('');
+  const [isGeneratingLikeMessage, setIsGeneratingLikeMessage] = useState<boolean>(false);
 
   // Helper function to format AI-generated text with compact, readable layout
   const formatAIText = (text: string) => {
@@ -41,7 +42,7 @@ function App() {
         return `<div class="ai-section-divider"></div><strong class="ai-section-label">${cleanHeading}:</strong>`;
       } else if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
         // Convert bullet points to inline text with bold labels
-        const cleanText = trimmedLine.replace(/^[•\-]\s*/, '').trim();
+        const cleanText = trimmedLine.replace(/^[•-]\s*/, '').trim();
         return `<span class="ai-inline-text">${cleanText}</span>`;
       } else if (trimmedLine.match(/^\d+\./)) {
         // Convert numbered lists to inline text
@@ -191,21 +192,104 @@ function App() {
     }
   }, [likedImages])
 
-  // Generate outfit implementation blurb
+  // Generate like message for wall when active tab changes to "your wall"
+  useEffect(() => {
+    console.log('Wall page useEffect triggered:', { activeTab, likedImagesLength: likedImages.length, likeMessage });
+    if (activeTab === 'your wall' && likedImages.length > 0) {
+      // If we already have a like message, don't regenerate
+      if (!likeMessage) {
+        console.log('Generating like message for wall page');
+        // Generate like message for the first liked image to show on wall
+        const firstImageMetadata = likedImages[0].metadata;
+        generateLikeMessage(firstImageMetadata);
+      } else {
+        console.log('Using existing like message for wall page:', likeMessage);
+      }
+    }
+  }, [activeTab, likedImages, likeMessage])
+
+
+
+  // Generate outfit implementation blurb using GPT
   const generateOutfitBlurb = async (metadata: string, index: number) => {
     try {
       console.log('Generating outfit blurb for index:', index, 'metadata:', metadata);
       setIsGeneratingBlurb(true);
       setClickedImageIndex(index);
       
-      // Generate focused outfit recreation tips
-      const blurb = `To recreate this look: ${metadata.split('\n')[0]}. Focus on the key silhouette and color combination. Add similar accessories to complete the outfit.`
-      setSelectedImageBlurb(blurb);
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/outfit-tips' : '/api/outfit-tips';
+      
+      console.log('Using API URL for outfit tips:', apiUrl);
+      
+      const apiResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadata,
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error('API error response for outfit tips:', errorText);
+        throw new Error(`Failed to generate outfit tips: ${apiResponse.status} - ${errorText}`);
+      }
+
+      const data = await apiResponse.json();
+      console.log('Outfit tips API response:', data);
+      
+      setSelectedImageBlurb(data.tips);
     } catch (error) {
       console.error('Error generating outfit blurb:', error);
-      setSelectedImageBlurb('Click to see outfit tips!');
+      setSelectedImageBlurb('Failed to generate outfit tips. Please try again.');
     } finally {
       setIsGeneratingBlurb(false);
+    }
+  };
+
+  // Generate personalized like message using GPT
+  const generateLikeMessage = async (metadata: string) => {
+    try {
+      console.log('Generating like message for metadata:', metadata);
+      setIsGeneratingLikeMessage(true);
+      
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/like-message' : '/api/like-message';
+      
+      console.log('Using API URL for like message:', apiUrl);
+      
+      const apiResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadata,
+        }),
+      });
+
+      if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error('API error response for like message:', errorText);
+        throw new Error(`Failed to generate like message: ${apiResponse.status} - ${errorText}`);
+      }
+
+      const data = await apiResponse.json();
+      console.log('Like message API response:', data);
+      
+      setLikeMessage(data.message);
+      
+    } catch (error) {
+      console.error('Error generating like message:', error);
+      // Fallback message if API fails
+      setLikeMessage('You seem to like this outfit!');
+    } finally {
+      setIsGeneratingLikeMessage(false);
     }
   };
 
@@ -221,44 +305,52 @@ function App() {
     }
   };
 
-  const handleLikeClick = () => {
-    setShowAnalysis(true)
-    // Add current image with metadata to liked images
-    const currentImage = images[currentImageIndex]
-    const newImageWithMetadata: ImageWithMetadata = {
-      image: currentImage,
-      metadata: currentMetadata,
-      timestamp: new Date()
+  const handleLikeClick = async () => {
+    if (currentImageIndex < images.length) {
+      const currentImage = images[currentImageIndex];
+      
+      // Generate metadata for the current image
+      await generateMetadata(currentImage);
+      
+      // Add the liked image to the list
+      if (currentMetadata) {
+        const newLikedImage: ImageWithMetadata = {
+          image: currentImage,
+          metadata: currentMetadata,
+          timestamp: new Date()
+        };
+        setLikedImages(prev => [...prev, newLikedImage]);
+        
+        // Generate like message
+        await generateLikeMessage(currentMetadata);
+      }
+      
+      // Don't auto-advance - let user manually navigate
     }
-    
-    // Check if image already exists
-    const exists = likedImages.some(item => item.image === currentImage)
-    if (!exists) {
-      setLikedImages([...likedImages, newImageWithMetadata])
-    }
-  }
+  };
 
   const handleNoLikeClick = () => {
-    // Just move to next image without adding to liked
+    // Don't auto-advance - let user manually navigate
   }
 
   const handleVote = (liked: boolean) => {
     if (liked) {
       handleLikeClick()
-      setShowAnalysis(true) // Show analysis when liked
-      
-      // Move to next image after showing analysis
-      setTimeout(() => {
-        setShowAnalysis(false)
-        setCurrentImageIndex((prev) => (prev + 1) % images.length)
-      }, 2000) // Show analysis for 2 seconds before moving to next image
+      // Don't auto-advance - let user manually navigate
     } else {
       handleNoLikeClick()
-      // Move to next image immediately for no like
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % images.length)
-      }, 500)
+      // Don't auto-advance - let user manually navigate
     }
+  }
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+    setLikeMessage('')
+  }
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+    setLikeMessage('')
   }
 
   const renderPlayContent = () => (
@@ -290,34 +382,30 @@ function App() {
               console.log('Image loaded successfully');
             }}
           />
+          
+          {/* Like Message Display - positioned on the right side */}
+          {likeMessage && (
+            <div className={`like-message-right`}>
+              {likeMessage}
+            </div>
+          )}
         </div>
 
-        {showAnalysis && (
-          <div className="analysis-text">
-            <div className="smiley">❤️</div>
-            <div className="analysis-content">
-              {currentMetadata ? (
-                <div className="play-metadata">
-                  {currentMetadata.split('\n').slice(0, 3).map((line, index) => (
-                    <div key={index} className="metadata-line">
-                      {line.trim()}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div>Analyzing your style...</div>
-              )}
-            </div>
-          </div>
-        )}
+
       </div>
 
       <div className="button-container">
-        <button className="like-button" onClick={() => handleVote(true)} disabled={isGeneratingMetadata}>
-          {isGeneratingMetadata ? 'Analyzing...' : 'like'}
+        <button className="nav-button" onClick={handlePreviousImage} disabled={isGeneratingMetadata || isGeneratingLikeMessage}>
+          ← Previous
         </button>
-        <button className="no-like-button" onClick={() => handleVote(false)} disabled={isGeneratingMetadata}>
-          no like
+        <button className="like-button" onClick={() => handleVote(true)} disabled={isGeneratingMetadata || isGeneratingLikeMessage}>
+          {isGeneratingLikeMessage ? 'Generating...' : 'Like'}
+        </button>
+        <button className="no-like-button" onClick={() => handleVote(false)} disabled={isGeneratingMetadata || isGeneratingLikeMessage}>
+          No Like
+        </button>
+        <button className="nav-button" onClick={handleNextImage} disabled={isGeneratingMetadata || isGeneratingLikeMessage}>
+          Next →
         </button>
       </div>
 
@@ -330,79 +418,96 @@ function App() {
     </>
   )
 
-  const renderYourWallContent = () => (
-    <div className="your-wall-content">
-      {fashionThesis && (
-        <div className="fashion-thesis">
-          <h3>Your Fashion Thesis</h3>
-          <div className="thesis-content">
-            {isGeneratingThesis ? (
-              <div className="thesis-loading">
-                <div className="loading-spinner"></div>
-                Generating your fashion thesis...
-              </div>
-            ) : (
-              <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
-            )}
+  const renderYourWallContent = () => {
+    console.log('Rendering wall content:', { likeMessage, likedImagesLength: likedImages.length });
+    return (
+      <div className="your-wall-content">
+        {fashionThesis && (
+          <div className="fashion-thesis">
+            <h3>Your Fashion Thesis</h3>
+            <div className="thesis-content">
+              {isGeneratingThesis ? (
+                <div className="thesis-loading">
+                  <div className="loading-spinner"></div>
+                  Generating your fashion thesis...
+                </div>
+              ) : (
+                <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
+              )}
+            </div>
           </div>
-        </div>
-      )}
-      
-      {likedImages.length === 0 ? (
-        <div className="empty-state">
-          <p>No liked images yet. Start voting to build your wall!</p>
-        </div>
-      ) : (
-        <div className="liked-images">
-          <h3>Your Liked Outfits</h3>
-          <div className="images-grid">
-            {likedImages.map((item, index) => (
-              <div 
-                key={index} 
-                className={`liked-image-container ${clickedImageIndex === index && selectedImageBlurb ? 'expanded' : ''}`}
-              >
-                <img 
-                  src={item.image} 
-                  alt={`Liked outfit ${index + 1}`}
-                  className="liked-image"
-                  onClick={() => handleImageClick(item.metadata, index)}
-                />
-                <div className="polaroid">
-                  <div className="polaroid-metadata">
-                    <h4>Style Analysis:</h4>
-                    <div className="metadata-summary">
-                      {item.metadata.split('\n').slice(0, 2).map((line, index) => (
-                        <div key={index} className="metadata-line">
-                          {line.trim()}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {clickedImageIndex === index && selectedImageBlurb && (
-                    <div className="outfit-blurb">
-                      {isGeneratingBlurb ? (
-                        <div className="blurb-loading">
-                          <div className="loading-spinner"></div>
-                          Generating outfit tips...
-                        </div>
-                      ) : (
-                        <div className="blurb-content">
-                          <h4>How to Recreate This Look:</h4>
-                          <div className="recreation-tips">
-                            {selectedImageBlurb}
+        )}
+        
+        {likedImages.length === 0 ? (
+          <div className="empty-state">
+            <p>No liked images yet. Start voting to build your wall!</p>
+          </div>
+        ) : (
+          <div className="liked-images">
+            <h3>Your Liked Outfits</h3>
+            <div className="images-grid">
+              {likedImages.map((item, index) => (
+                <div 
+                  key={index} 
+                  className={`liked-image-container ${clickedImageIndex === index && selectedImageBlurb ? 'expanded' : ''}`}
+                >
+                  <img 
+                    src={item.image} 
+                    alt={`Liked outfit ${index + 1}`}
+                    className="liked-image"
+                    onClick={() => handleImageClick(item.metadata, index)}
+                  />
+                  <div className="polaroid">
+                    <div className="polaroid-metadata">
+                      {likeMessage && (
+                        <>
+                          <h4>You seem to like:</h4>
+                          <div className="metadata-summary">
+                            <div className="like-message-wall">
+                              {likeMessage}
+                            </div>
                           </div>
-                        </div>
+                        </>
+                      )}
+                      {(!likeMessage || isGeneratingLikeMessage) && (
+                        <>
+                          <h4>Style Analysis:</h4>
+                          <div className="metadata-summary">
+                            {item.metadata.split('\n').slice(0, 3).map((line, index) => (
+                              <div key={index} className="metadata-line">
+                                {line.trim()}
+                              </div>
+                            ))}
+                          </div>
+                        </>
                       )}
                     </div>
-                  )}
+                    {clickedImageIndex === index && selectedImageBlurb && (
+                      <div className="outfit-blurb">
+                        {isGeneratingBlurb ? (
+                          <div className="blurb-loading">
+                            <div className="loading-spinner"></div>
+                            Generating outfit tips...
+                          </div>
+                        ) : (
+                          <div className="blurb-content">
+                            <h4>How to Recreate This Look:</h4>
+                            <div className="recreation-tips">
+                              {selectedImageBlurb}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  )
+        )}
+      </div>
+    );
+  };
 
   return (
     <Routes>
