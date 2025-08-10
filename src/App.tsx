@@ -10,6 +10,7 @@ interface ImageWithMetadata {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [activeTab, setActiveTab] = useState('play')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -204,6 +205,15 @@ function App() {
     const currentImage = images[currentImageIndex]
     generateMetadata(currentImage).then(setCurrentMetadata)
   }, [currentImageIndex])
+
+  // Hide splash screen after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false)
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   // Generate thesis when liked images reach 3 or more (for testing)
   useEffect(() => {
@@ -528,43 +538,59 @@ function App() {
     <Routes>
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/" element={
-        <div className="app">
-          {/* Header with Logo */}
-          {/* <div className="header">
-            <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
-          </div> */}
-          
-          {/* Tabs */}
-          <div className="tabs">
-            <button 
-              className={`tab ${activeTab === 'play' ? 'active' : ''}`}
-              onClick={() => setActiveTab('play')}
-            >
-              play
-            </button>
-            <button 
-              className={`tab ${activeTab === 'your wall' ? 'active' : ''}`}
-              onClick={() => setActiveTab('your wall')}
-            >
-              your wall
-            </button>
-          </div>
-
-          {/* Content based on active tab */}
-          {activeTab === 'play' ? renderPlayContent() : renderYourWallContent()}
-          
-          {/* Footer */}
-          <footer className="app-footer">
-            <div className="footer-content">
-              <div className="footer-left">
-                <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
-              </div>
-              <div className="footer-right">
-                <Link to="/privacy" className="privacy-policy-link">Privacy Policy</Link>
+        <>
+          {/* Splash Screen */}
+          {showSplash && (
+            <div className="splash-screen">
+              <div className="splash-content">
+                <img src="/Frame 31.png" alt="Fashion Taster Logo" className="splash-logo" />
+                <h1 className="splash-title">explore your fashion taste</h1>
+                <p className="splash-subtitle">unpack your style and understand what you like. It can be a journey knowing what you like.</p>
               </div>
             </div>
-          </footer>
-        </div>
+          )}
+          
+          {/* Main App */}
+          {!showSplash && (
+            <div className="app">
+              {/* Header with Logo */}
+              {/* <div className="header">
+                <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
+              </div> */}
+              
+              {/* Tabs */}
+              <div className="tabs">
+                <button 
+                  className={`tab ${activeTab === 'play' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('play')}
+                >
+                  play
+                </button>
+                <button 
+                  className={`tab ${activeTab === 'your wall' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('your wall')}
+                >
+                  your wall
+                </button>
+              </div>
+
+              {/* Content based on active tab */}
+              {activeTab === 'play' ? renderPlayContent() : renderYourWallContent()}
+              
+              {/* Footer */}
+              <footer className="app-footer">
+                <div className="footer-content">
+                  <div className="footer-left">
+                    <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
+                  </div>
+                  <div className="footer-right">
+                    <Link to="/privacy" className="privacy-policy-link">Privacy Policy</Link>
+                  </div>
+                </div>
+              </footer>
+            </div>
+          )}
+        </>
       } />
     </Routes>
   )
