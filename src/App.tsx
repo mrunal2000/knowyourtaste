@@ -470,15 +470,26 @@ function App() {
                 key={index} 
                 className={`liked-image-container ${clickedImageIndex === index && selectedImageBlurb ? 'expanded' : ''}`}
               >
-                <img 
-                  src={item.image} 
-                  alt={`Liked outfit ${index + 1}`}
-                  className="liked-image"
-                  onClick={() => handleImageClick(item.metadata, index)}
-                />
+                <div className="image-wrapper">
+                  <img 
+                    src={item.image} 
+                    alt={`Liked outfit ${index + 1}`}
+                    className="liked-image"
+                    onClick={() => handleImageClick(item.metadata, index)}
+                  />
+                  <button 
+                    className="hanger-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleImageClick(item.metadata, index);
+                    }}
+                    title="Get outfit recreation tips"
+                  >
+                    🧥
+                  </button>
+                </div>
                 <div className="polaroid">
                   <div className="polaroid-metadata">
-                    <h4>Style Analysis:</h4>
                     <div className="metadata-summary">
                       {item.metadata.split('\n').slice(0, 2).map((line, index) => (
                         <div key={index} className="metadata-line">
