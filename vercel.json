@@ -1,12 +1,7 @@
 {
-  "buildCommand": "npm ci --legacy-peer-deps && npm run build",
-  "outputDirectory": "dist",
   "functions": {
     "api/analyze.js": {
       "maxDuration": 30
-    },
-    "api/test.js": {
-      "maxDuration": 10
     },
     "api/like-message.js": {
       "maxDuration": 15
@@ -17,9 +12,5 @@
     "api/fashion-thesis.js": {
       "maxDuration": 15
     }
-  },
-  "env": {
-    "OPENAI_API_KEY": "@openai_api_key"
-  },
-  "version": 2
+  }
 }
