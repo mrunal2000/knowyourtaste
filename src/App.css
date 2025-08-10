@@ -258,22 +258,19 @@ body {
 .fashion-thesis {
   width: 100%;
   max-width: 600px;
-  margin: 0 auto 30px auto;
+  margin-bottom: 30px;
   padding: 20px;
-  background: #e5e7eb;
-  border: 3px solid #0C20F4;
+  background: linear-gradient(135deg, #0C20F4 0%, #1e40af 100%);
   border-radius: 0;
-  color: #0C20F4;
-  box-shadow: 8px 8px 0px #0C20F4;
-  text-align: center;
+  color: white;
+  box-shadow: 0 8px 32px rgba(12, 32, 244, 0.2);
 }
 
 .thesis-content h3 {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 16px;
-  text-align: center;
-  color: #0C20F4;
+  text-align: left;
 }
 
 .thesis-content p {
@@ -283,7 +280,6 @@ body {
   font-weight: 500;
   margin: 0;
   padding: 0;
-  color: #0C20F4;
 }
 
 .thesis-loading {
@@ -430,8 +426,9 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 8px 8px 0px #0C20F4;
+  box-shadow: 8px 8px 0px #0C20F4;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* Screenshot image */
@@ -480,154 +477,10 @@ body {
   color: #0C20F4 !important;
 }
 
-/* Like message styling */
-.like-message {
-  margin-bottom: 15px;
-  text-align: center;
-  padding: 10px;
-  background: linear-gradient(135deg, #ff6b9d, #c44569);
-  border-radius: 15px;
-  color: white;
-  box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
-}
-
-/* Like message positioned on the right side of the image */
-.like-message-right {
-  position: absolute;
-  right: -200px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 180px;
-  text-align: center;
-  padding: 15px;
-  background: #e5e7eb;
-  border: 3px solid #0C20F4;
-  border-radius: 0;
-  color: #0C20F4;
-  box-shadow: 8px 8px 0px #0C20F4;
-  font-size: 14px;
-  line-height: 1.4;
-  z-index: 10;
-  font-weight: 600;
-  opacity: 1;
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-  animation: slideInRight 0.3s ease-out;
-}
-
-/* Animation for like message appearing */
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-}
-
-/* Like message for wall page */
-.like-message-wall {
-  color: #0C20F4;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 1.4;
-  text-align: center;
-  padding: 10px;
-  background: #e5e7eb;
-  border: 3px solid #0C20F4;
-  border-radius: 0;
-  box-shadow: 8px 8px 0px #0C20F4;
-  margin: 10px 0;
-  opacity: 1;
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-  animation: slideInUp 0.3s ease-out;
-}
-
-/* Animation for wall page like message appearing */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.like-message h4 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.like-message.loading {
-  background: linear-gradient(135deg, #ffd93d, #ff6b6b);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
 /* Play page metadata styling */
 .play-metadata {
   font-size: 14px;
   line-height: 1.4;
-}
-
-/* Current metadata display styling */
-.current-metadata {
-  margin-top: 20px;
-  padding: 20px;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.current-metadata h4 {
-  margin: 0 0 15px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  text-align: center;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 10px;
-}
-
-.metadata-content {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #555;
-}
-
-.metadata-content .ai-section-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
-  margin: 15px 0;
-}
-
-.metadata-content .ai-section-label {
-  display: block;
-  font-weight: 600;
-  color: #333;
-  margin: 15px 0 8px 0;
-  font-size: 15px;
-}
-
-.metadata-content .ai-inline-text {
-  display: inline;
-  margin-right: 8px;
 }
 
 .metadata-line {
@@ -666,16 +519,12 @@ body {
   margin-top: 10px;
 }
 
-
-
 /* Button container */
 .button-container {
   margin-top: 30px;
   display: flex;
-  gap: 15px;
+  gap: 20px;
   justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
 /* Buttons */
@@ -705,46 +554,6 @@ body {
 .no-like-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* Navigation buttons */
-.nav-button {
-  padding: 12px 16px;
-  border: 3px solid #0C20F4;
-  background: white;
-  color: #0C20F4;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 0;
-  box-shadow: 4px 4px 0px #0C20F4;
-  margin: 0 5px;
-}
-
-.nav-button:hover:not(:disabled) {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px #0C20F4;
-}
-
-.nav-button:active:not(:disabled) {
-  transform: translate(0, 0);
-  box-shadow: 2px 2px 0px #0C20F4;
-}
-
-.nav-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 2px 2px 0px #0C20F4;
-}
-
-.prev-button {
-  margin-right: 10px;
-}
-
-.next-button {
-  margin-left: 10px;
 }
 
 /* Person */
@@ -1050,18 +859,18 @@ body {
 
 /* Fashion thesis specific overrides */
 .fashion-thesis .ai-section-divider {
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
   margin: 6px 0;
 }
 
 .fashion-thesis .ai-section-label {
-  color: #0C20F4;
+  color: white;
   font-size: 15px;
   font-weight: 600;
 }
 
 .fashion-thesis .ai-inline-text {
-  color: #0C20F4;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -1087,50 +896,6 @@ body {
     left: -25px;
     right: -25px;
     max-width: calc(100vw - 40px);
-  }
-  
-  .current-metadata {
-    margin: 15px 10px;
-    padding: 15px;
-    max-width: calc(100vw - 40px);
-  }
-  
-  .current-metadata h4 {
-    font-size: 16px;
-    margin-bottom: 12px;
-  }
-  
-  .metadata-content {
-    font-size: 13px;
-    line-height: 1.5;
-  }
-  
-  .like-message-right {
-    position: static;
-    right: auto;
-    top: auto;
-    transform: none;
-    width: 100%;
-    margin-top: 15px;
-    margin-bottom: 15px;
-  }
-  
-  .button-container {
-    gap: 10px;
-    padding: 0 10px;
-  }
-  
-  .nav-button {
-    padding: 10px 12px;
-    font-size: 12px;
-    min-width: auto;
-  }
-  
-  .like-button,
-  .no-like-button {
-    padding: 10px 20px;
-    font-size: 14px;
-    min-width: 100px;
   }
 }
 
