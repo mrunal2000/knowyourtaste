@@ -875,6 +875,42 @@ body {
   line-height: 1.4;
 }
 
+/* Outfit Tips Styling */
+.outfit-blurb .recreation-tips {
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.outfit-blurb .recreation-tips ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.outfit-blurb .recreation-tips li {
+  margin-bottom: 12px;
+  padding-left: 8px;
+}
+
+.outfit-blurb .recreation-tips li:last-child {
+  margin-bottom: 0;
+}
+
+.outfit-blurb .recreation-tips strong {
+  color: #0C20F4;
+  font-weight: 600;
+}
+
+/* Responsive adjustments for outfit tips */
+@media (max-width: 768px) {
+  .outfit-blurb .recreation-tips {
+    font-size: 13px;
+  }
+  
+  .outfit-blurb .recreation-tips li {
+    margin-bottom: 10px;
+  }
+}
+
 /* Responsive Design and Layout Fixes */
 @media (max-width: 768px) {
   .images-grid {
@@ -924,4 +960,62 @@ html {
   color: #333;
   /* Ensure outfit blurb doesn't interfere with other content */
   overflow: visible;
+}
+
+/* Like Message Feature Styles */
+.like-message {
+  background: none;
+  color: #0C20F4;
+  padding: 12px 20px;
+  border-radius: 0;
+  margin-bottom: 15px;
+  text-align: left;
+  font-weight: 400;
+  font-size: 16px;
+  box-shadow: none;
+  background-color: #FFFFFF;
+  animation: slideInDown 0.5s ease-out;
+}
+
+.like-message-loading {
+  background: none;
+  color: #0066cc;
+  padding: 12px 20px;
+  border-radius: 0;
+  margin-bottom: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: none;
+  border: 3px solid #0066cc;
+  background-color: #FEFFF1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.like-message-content {
+  line-height: 1.4;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments for like message */
+@media (max-width: 768px) {
+  .like-message,
+  .like-message-loading {
+    padding: 10px 16px;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
 }

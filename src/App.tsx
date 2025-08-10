@@ -21,6 +21,9 @@ function App() {
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
+  // New state variables for like message feature
+  const [likeMessage, setLikeMessage] = useState<string>('');
+  const [isGeneratingLikeMessage, setIsGeneratingLikeMessage] = useState<boolean>(false);
 
   // Helper function to format AI-generated text with compact, readable layout
   const formatAIText = (text: string) => {
@@ -157,16 +160,37 @@ function App() {
     }
   }
 
-  // Function to generate fashion thesis
+  // Function to generate fashion thesis using GPT API
   const generateFashionThesis = async (metadataList: string[]) => {
     setIsGeneratingThesis(true)
     console.log('Generating thesis with metadata:', metadataList)
     try {
-      // For now, we'll generate a simple thesis from the metadata
-      // You can create a separate API endpoint for this if needed
-      const combinedMetadata = metadataList.join('. ')
-      const thesis = `Based on your style preferences, you seem to enjoy ${combinedMetadata.toLowerCase()}. Your fashion choices show a unique blend of styles that reflect your personal taste.`
-      return thesis
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/fashion-thesis' : '/api/fashion-thesis';
+      
+      console.log('Using fashion-thesis API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadataList,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Fashion thesis API error response:', errorText);
+        throw new Error(`Failed to generate fashion thesis: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Fashion thesis API response:', data);
+      
+      return data.thesis;
     } catch (error) {
       console.error('Error generating thesis:', error)
       return 'Your fashion taste is evolving and unique!'
@@ -198,14 +222,77 @@ function App() {
       setIsGeneratingBlurb(true);
       setClickedImageIndex(index);
       
-      // Generate focused outfit recreation tips
-      const blurb = `To recreate this look: ${metadata.split('\n')[0]}. Focus on the key silhouette and color combination. Add similar accessories to complete the outfit.`
-      setSelectedImageBlurb(blurb);
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/outfit-tips' : '/api/outfit-tips';
+      
+      console.log('Using outfit-tips API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadata,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Outfit tips API error response:', errorText);
+        throw new Error(`Failed to generate outfit tips: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Outfit tips API response:', data);
+      
+      setSelectedImageBlurb(data.tips);
     } catch (error) {
       console.error('Error generating outfit blurb:', error);
       setSelectedImageBlurb('Click to see outfit tips!');
     } finally {
       setIsGeneratingBlurb(false);
+    }
+  };
+
+  // Generate personalized like message using GPT API
+  const generateLikeMessage = async (metadata: string) => {
+    setIsGeneratingLikeMessage(true);
+    try {
+      console.log('Generating like message for metadata:', metadata);
+      
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/like-message' : '/api/like-message';
+      
+      console.log('Using like-message API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadata,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Like message API error response:', errorText);
+        throw new Error(`Failed to generate like message: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Like message API response:', data);
+      
+      return data.message;
+    } catch (error) {
+      console.error('Error generating like message:', error);
+      return 'You seem to like this outfit!';
+    } finally {
+      setIsGeneratingLikeMessage(false);
     }
   };
 
@@ -221,7 +308,7 @@ function App() {
     }
   };
 
-  const handleLikeClick = () => {
+  const handleLikeClick = async () => {
     setShowAnalysis(true)
     // Add current image with metadata to liked images
     const currentImage = images[currentImageIndex]
@@ -235,6 +322,24 @@ function App() {
     const exists = likedImages.some(item => item.image === currentImage)
     if (!exists) {
       setLikedImages([...likedImages, newImageWithMetadata])
+    }
+
+    // Generate personalized like message
+    try {
+      const message = await generateLikeMessage(currentMetadata);
+      setLikeMessage(message);
+      
+      // Clear the like message after 3 seconds
+      setTimeout(() => {
+        setLikeMessage('');
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to generate like message:', error);
+      // Set fallback message
+      setLikeMessage('You seem to like this outfit!');
+      setTimeout(() => {
+        setLikeMessage('');
+      }, 3000);
     }
   }
 
@@ -296,16 +401,20 @@ function App() {
           <div className="analysis-text">
             <div className="smiley">❤️</div>
             <div className="analysis-content">
-              {currentMetadata ? (
-                <div className="play-metadata">
-                  {currentMetadata.split('\n').slice(0, 3).map((line, index) => (
-                    <div key={index} className="metadata-line">
-                      {line.trim()}
+              {/* Display personalized like message if available */}
+              {likeMessage && (
+                <div className="like-message">
+                  {isGeneratingLikeMessage ? (
+                    <div className="like-message-loading">
+                      <div className="loading-spinner"></div>
+                      Generating your personalized message...
                     </div>
-                  ))}
+                  ) : (
+                    <div className="like-message-content">
+                      {likeMessage}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div>Analyzing your style...</div>
               )}
             </div>
           </div>
@@ -313,8 +422,8 @@ function App() {
       </div>
 
       <div className="button-container">
-        <button className="like-button" onClick={() => handleVote(true)} disabled={isGeneratingMetadata}>
-          {isGeneratingMetadata ? 'Analyzing...' : 'like'}
+        <button className="like-button" onClick={() => handleVote(true)} disabled={isGeneratingMetadata || isGeneratingLikeMessage}>
+          {isGeneratingMetadata || isGeneratingLikeMessage ? 'Generating...' : 'like'}
         </button>
         <button className="no-like-button" onClick={() => handleVote(false)} disabled={isGeneratingMetadata}>
           no like
