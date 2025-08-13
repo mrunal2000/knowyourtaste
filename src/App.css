@@ -367,6 +367,8 @@ body {
 .image-wrapper {
   position: relative;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .hanger-button {
@@ -400,29 +402,38 @@ body {
 .polaroid {
   position: relative;
   width: 100%;
-  height: 50px;
+  min-height: 50px;
   background: #FEFFF1;
   border: 2px solid #0C20F4;
   border-top: none;
+  margin-top: -2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 15px;
   font-family: 'P22 Mackinac Pro', serif;
   font-size: 12px;
   line-height: 1.3;
   color: #333;
+  flex-direction: column;
 }
 
 .polaroid-metadata {
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  overflow: visible;
   color: #000;
+  width: 100%;
+}
+
+.like-message-display {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #0C20F4;
+  font-weight: 500;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* Placeholder icon */

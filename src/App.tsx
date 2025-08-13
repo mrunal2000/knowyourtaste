@@ -7,24 +7,57 @@ interface ImageWithMetadata {
   image: string
   metadata: string
   timestamp: Date
+  likeMessage?: string
 }
 
 function App() {
+  // Local storage keys
+  const STORAGE_KEYS = {
+    CURRENT_IMAGE_INDEX: 'fashion-taster-current-image-index',
+    LIKED_IMAGES: 'fashion-taster-liked-images',
+    ACTIVE_TAB: 'fashion-taster-active-tab'
+  };
+
+  // Helper functions for local storage
+  const saveToLocalStorage = (key: string, data: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+  };
+
+  const loadFromLocalStorage = (key: string, defaultValue: any) => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultValue;
+    } catch (error) {
+      console.error('Failed to load from localStorage:', error);
+      return defaultValue;
+    }
+  };
+
   const [showSplash, setShowSplash] = useState(true)
-  const [showAnalysis, setShowAnalysis] = useState(false)
-  const [activeTab, setActiveTab] = useState('play')
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [likedImages, setLikedImages] = useState<ImageWithMetadata[]>([])
-  const [currentMetadata, setCurrentMetadata] = useState('')
-  const [isGeneratingMetadata, setIsGeneratingMetadata] = useState(false)
+
+  const [activeTab, setActiveTab] = useState(() => loadFromLocalStorage(STORAGE_KEYS.ACTIVE_TAB, 'play'))
+  const [currentImageIndex, setCurrentImageIndex] = useState(() => loadFromLocalStorage(STORAGE_KEYS.CURRENT_IMAGE_INDEX, 0))
+  const [likedImages, setLikedImages] = useState<ImageWithMetadata[]>(() => {
+    const saved = loadFromLocalStorage(STORAGE_KEYS.LIKED_IMAGES, []);
+    // Convert timestamp strings back to Date objects
+    return saved.map((item: any) => ({
+      ...item,
+      timestamp: new Date(item.timestamp)
+    }));
+  })
+
   const [fashionThesis, setFashionThesis] = useState<string>('');
   const [isGeneratingThesis, setIsGeneratingThesis] = useState<boolean>(false);
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
-  // New state variables for like message feature
-  const [likeMessage, setLikeMessage] = useState<string>('');
-  const [isGeneratingLikeMessage, setIsGeneratingLikeMessage] = useState<boolean>(false);
+
+
+
 
   // Helper function to format AI-generated text with compact, readable layout
   const formatAIText = (text: string) => {
@@ -97,69 +130,7 @@ function App() {
     '/pinterest_outfit_015.jpg'
   ]
 
-  // Function to generate metadata using OpenAI Vision API
-  const generateMetadata = async (imageUrl: string) => {
-    setIsGeneratingMetadata(true)
-    try {
-      console.log('Starting metadata generation for image:', imageUrl);
-      
-      // Convert image to base64
-      const response = await fetch(imageUrl)
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
-      }
-      
-      const blob = await response.blob()
-      console.log('Image blob size:', blob.size, 'bytes');
-      
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result as string)
-        reader.readAsDataURL(blob)
-      })
 
-      console.log('Base64 conversion complete, length:', base64.length);
-      const base64Data = base64.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-      console.log('Base64 data length (without prefix):', base64Data.length);
-
-      // Use localhost for local testing, production API for deployed app
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiUrl = isLocalhost ? 'http://localhost:3002/api/analyze' : '/api/analyze';
-      
-      console.log('Using API URL:', apiUrl);
-      console.log('Calling analyze endpoint...');
-      
-      const apiResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: base64Data,
-        }),
-      })
-
-      console.log('API response status:', apiResponse.status);
-      console.log('API response ok:', apiResponse.ok);
-
-      if (!apiResponse.ok) {
-        const errorText = await apiResponse.text();
-        console.error('API error response:', errorText);
-        throw new Error(`Failed to generate metadata: ${apiResponse.status} - ${errorText}`);
-      }
-
-      const data = await apiResponse.json()
-      console.log('API response data:', data);
-      console.log('Analysis content:', data.analysis);
-      
-      return data.analysis // Changed from data.metadata to data.analysis to match the API response
-    } catch (error) {
-      console.error('Error generating metadata:', error)
-      return 'Casual outfit with mixed colors and patterns'
-    } finally {
-      setIsGeneratingMetadata(false)
-    }
-  }
 
   // Function to generate fashion thesis using GPT API
   const generateFashionThesis = async (metadataList: string[]) => {
@@ -200,11 +171,7 @@ function App() {
     }
   }
 
-  // Generate metadata when image changes
-  useEffect(() => {
-    const currentImage = images[currentImageIndex]
-    generateMetadata(currentImage).then(setCurrentMetadata)
-  }, [currentImageIndex])
+
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -214,6 +181,21 @@ function App() {
 
     return () => clearTimeout(timer)
   }, [])
+
+  // Save current image index to local storage
+  useEffect(() => {
+    saveToLocalStorage(STORAGE_KEYS.CURRENT_IMAGE_INDEX, currentImageIndex);
+  }, [currentImageIndex]);
+
+  // Save liked images to local storage
+  useEffect(() => {
+    saveToLocalStorage(STORAGE_KEYS.LIKED_IMAGES, likedImages);
+  }, [likedImages]);
+
+  // Save active tab to local storage
+  useEffect(() => {
+    saveToLocalStorage(STORAGE_KEYS.ACTIVE_TAB, activeTab);
+  }, [activeTab]);
 
   // Generate thesis when liked images reach 3 or more (for testing)
   useEffect(() => {
@@ -268,7 +250,6 @@ function App() {
 
   // Generate personalized like message using GPT API
   const generateLikeMessage = async (metadata: string) => {
-    setIsGeneratingLikeMessage(true);
     try {
       console.log('Generating like message for metadata:', metadata);
       
@@ -301,8 +282,6 @@ function App() {
     } catch (error) {
       console.error('Error generating like message:', error);
       return 'You seem to like this outfit!';
-    } finally {
-      setIsGeneratingLikeMessage(false);
     }
   };
 
@@ -319,13 +298,23 @@ function App() {
   };
 
   const handleLikeClick = async () => {
-    setShowAnalysis(true)
     // Add current image with metadata to liked images
     const currentImage = images[currentImageIndex]
+    
+    // Generate personalized like message first
+    let likeMessage = '';
+    try {
+      likeMessage = await generateLikeMessage(`Fashion outfit ${currentImageIndex + 1} - Style inspiration from our collection`);
+    } catch (error) {
+      console.error('Failed to generate like message:', error);
+      likeMessage = 'You seem to like this outfit!';
+    }
+    
     const newImageWithMetadata: ImageWithMetadata = {
       image: currentImage,
-      metadata: currentMetadata,
-      timestamp: new Date()
+      metadata: `Fashion outfit ${currentImageIndex + 1} - Style inspiration from our collection`,
+      timestamp: new Date(),
+      likeMessage: likeMessage
     }
     
     // Check if image already exists
@@ -334,47 +323,20 @@ function App() {
       setLikedImages([...likedImages, newImageWithMetadata])
     }
 
-    // Generate personalized like message
-    try {
-      const message = await generateLikeMessage(currentMetadata);
-      setLikeMessage(message);
-      
-      // Clear the like message after 3 seconds
-      setTimeout(() => {
-        setLikeMessage('');
-      }, 3000);
-    } catch (error) {
-      console.error('Failed to generate like message:', error);
-      // Set fallback message
-      setLikeMessage('You seem to like this outfit!');
-      setTimeout(() => {
-        setLikeMessage('');
-      }, 3000);
-    }
+    // Move to next image quickly
+    setTimeout(() => {
+      setCurrentImageIndex((prev: number) => (prev + 1) % images.length);
+    }, 300);
   }
 
   const handleNoLikeClick = () => {
-    // Just move to next image without adding to liked
+    // Move to next image quickly
+    setTimeout(() => {
+      setCurrentImageIndex((prev: number) => (prev + 1) % images.length);
+    }, 300);
   }
 
-  const handleVote = (liked: boolean) => {
-    if (liked) {
-      handleLikeClick()
-      setShowAnalysis(true) // Show analysis when liked
-      
-      // Move to next image after showing analysis
-      setTimeout(() => {
-        setShowAnalysis(false)
-        setCurrentImageIndex((prev) => (prev + 1) % images.length)
-      }, 2000) // Show analysis for 2 seconds before moving to next image
-    } else {
-      handleNoLikeClick()
-      // Move to next image immediately for no like
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % images.length)
-      }, 500)
-    }
-  }
+
 
   const renderPlayContent = () => (
     <>
@@ -407,45 +369,19 @@ function App() {
           />
         </div>
 
-        {showAnalysis && (
-          <div className="analysis-text">
-            <div className="smiley">❤️</div>
-            <div className="analysis-content">
-              {/* Display personalized like message if available */}
-              {likeMessage && (
-                <div className="like-message">
-                  {isGeneratingLikeMessage ? (
-                    <div className="like-message-loading">
-                      <div className="loading-spinner"></div>
-                      Generating your personalized message...
-                    </div>
-                  ) : (
-                    <div className="like-message-content">
-                      {likeMessage}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+
       </div>
 
       <div className="button-container">
-        <button className="like-button" onClick={() => handleVote(true)} disabled={isGeneratingMetadata || isGeneratingLikeMessage}>
-          {isGeneratingMetadata || isGeneratingLikeMessage ? 'Generating...' : 'like'}
+        <button className="like-button" onClick={handleLikeClick}>
+          like
         </button>
-        <button className="no-like-button" onClick={() => handleVote(false)} disabled={isGeneratingMetadata}>
+        <button className="no-like-button" onClick={handleNoLikeClick}>
           no like
         </button>
       </div>
 
-      {isGeneratingMetadata && (
-        <div className="loading-indicator">
-          <div className="loading-spinner"></div>
-          <p>Analyzing outfit...</p>
-        </div>
-      )}
+
     </>
   )
 
@@ -473,7 +409,9 @@ function App() {
         </div>
       ) : (
         <div className="liked-images">
-          <h3>Your Liked Outfits</h3>
+          <div style={{ marginBottom: '20px' }}>
+            <h3>Your Liked Outfits</h3>
+          </div>
           <div className="images-grid">
             {likedImages.map((item, index) => (
               <div 
@@ -501,11 +439,17 @@ function App() {
                 <div className="polaroid">
                   <div className="polaroid-metadata">
                     <div className="metadata-summary">
-                      {item.metadata.split('\n').slice(0, 2).map((line, index) => (
-                        <div key={index} className="metadata-line">
-                          {line.trim()}
+                      {item.likeMessage ? (
+                        <div className="like-message-display">
+                          {item.likeMessage}
                         </div>
-                      ))}
+                      ) : (
+                        item.metadata.split('\n').slice(0, 2).map((line, index) => (
+                          <div key={index} className="metadata-line">
+                            {line.trim()}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                   {clickedImageIndex === index && selectedImageBlurb && (
