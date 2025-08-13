@@ -1,3 +1,215 @@
+/* P22 Mackinac Font Family */
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Book_25.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-BookItalic_15.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Medium_26.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-MedItalic_18.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Bold_16.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-BoldItalic_11.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-ExtraBold_12.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-ExBoldItalic_17.otf') format('opentype');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Regular P22 Mackinac fonts for broader compatibility */
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Book_13.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-BookItalic_5.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Medium_6.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-MedItalic_22.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Bold_23.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-BoldItalic_7.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-ExtraBold_9.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-ExtraBoldItalic_4.otf') format('opentype');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Additional weights and mappings for broader compatibility */
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Book_25.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Medium_26.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-MedItalic_18.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Bold_16.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac Pro';
+  src: url('/fonts/P22MackinacPro-Book_25.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Regular P22 Mackinac additional weights */
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Book_13.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Medium_6.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-MedItalic_22.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Bold_23.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'P22 Mackinac';
+  src: url('/fonts/P22Mackinac-Book_13.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Reset and base styles */
 * {
   margin: 0;
@@ -6,7 +218,7 @@
 }
 
 body {
-  font-family: 'P22 Mackinac Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'P22 Mackinac Pro', 'P22 Mackinac', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;

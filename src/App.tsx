@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import './App.css'
-import PrivacyPolicy from './components/PrivacyPolicy'
 
 interface ImageWithMetadata {
   image: string
@@ -480,7 +479,6 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/" element={
         <>
           {/* Splash Screen */}
@@ -526,9 +524,6 @@ function App() {
                 <div className="footer-content">
                   <div className="footer-left">
                     <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
-                  </div>
-                  <div className="footer-right">
-                    <Link to="/privacy" className="privacy-policy-link">Privacy Policy</Link>
                   </div>
                 </div>
               </footer>
