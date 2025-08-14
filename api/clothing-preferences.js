@@ -46,7 +46,7 @@ ${metadata.join('\n')}`;
           content: prompt
         }
       ],
-      max_tokens: 100,
+      max_tokens: 250,
       temperature: 0.7,
     });
 
