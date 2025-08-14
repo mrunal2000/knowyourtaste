@@ -271,9 +271,9 @@ app.post('/api/fashion-thesis', async (req, res) => {
       messages: [
         {
           role: "user",
-          content: `You are a professional fashion stylist and trend analyst. I will give you a list of images that I personally like. These images represent outfits, colors, silhouettes, textures, and accessories that resonate with me. Study the common patterns across all these images — considering style elements, color palette, fit, proportions, vibe, and subtle recurring details. Then, write a single, natural-sounding paragraph that captures my fashion thesis — a vivid, human description of my style that feels personal and insightful, avoiding vague terms like 'nice' or 'good'. It should help me easily explain my style to someone else and guide my future outfit choices. End with 3–5 concise, actionable style guidelines I can follow when putting together outfits.
+          content: `You are a professional fashion stylist and trend analyst. I will give you a list of outfit metadata that I personally like. These represent outfits, colors, silhouettes, textures, and accessories that resonate with me. Study the common patterns across all these metadata — considering style elements, color palette, fit, proportions, vibe, and subtle recurring details. Then, write a single, natural-sounding paragraph that captures my fashion thesis — a vivid, human description of my style that feels personal and insightful, avoiding vague terms like 'nice' or 'good'. It should help me easily explain my style to someone else and guide my future outfit choices. End with 3–5 concise, actionable style guidelines I can follow when putting together outfits.
 
-Here are the outfit analyses to study: "${combinedContext}"`
+Here are the outfit metadata to analyze: "${combinedContext}"`
         }
       ],
       max_tokens: 120
@@ -341,7 +341,7 @@ app.post('/api/color-insights', async (req, res) => {
       messages: [
         {
           role: "user",
-          content: `You are a professional color analyst and fashion expert. I will give you a list of images that I personally like. From these, analyze my color preferences and create a personalized color palette.
+          content: `You are a professional color analyst and fashion expert. I will give you a list of outfit metadata that I personally like. From these, analyze my color preferences and create a personalized color palette.
 
 First, provide a brief analysis of my color style (2-3 sentences about what colors I'm drawn to and how I use them).
 
@@ -358,7 +358,7 @@ Then, output 6-8 hex color codes that represent my signature color palette. Thes
 
 IMPORTANT: Always provide at least 6 colors. Do not cut off or leave incomplete. Each color must have a complete hex code and descriptive name.
 
-Here are the outfit analyses to study: "${combinedContext}"`
+Here are the outfit metadata to analyze: "${combinedContext}"`
         }
       ],
       max_tokens: 120
@@ -407,9 +407,11 @@ app.post('/api/clothing-preferences', async (req, res) => {
       messages: [
         {
           role: "user",
-          content: `You are a professional fashion stylist. I will give you a list of images that I personally like. From these, identify the specific clothing pieces, accessories, and footwear that appear most often or stand out. Group similar items together and describe them in plain language, noting any distinctive details like fabric, cut, color, or styling. The tone should be friendly and human, as if you're helping me shop. Output as a simple bullet list of the key pieces I seem drawn to, followed by a one-sentence summary of what this reveals about my taste.
+          content: `You are a professional fashion stylist. I will give you a list of outfit metadata that I personally like. Based on these, simply list out the key types of clothing pieces, accessories, and footwear that I seem to prefer. 
 
-Here are the outfit analyses to study: "${combinedContext}"`
+Output as a clean, simple bullet list of the main clothing categories and pieces I'm drawn to. Keep it concise and focused on the types of items, not detailed descriptions.
+
+Here are the outfit metadata to analyze: "${combinedContext}"`
         }
       ],
       max_tokens: 120
