@@ -1331,20 +1331,12 @@ html {
   color: #0C20F4 !important;
 }
 
-/* Clothing Content specific styling */
+/* Clothing Content specific styling - UNIFORM FORMATTING */
 .clothing-content {
   font-size: 14px;
   line-height: 1.6;
   color: #000000;
-  overflow: visible;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  height: auto;
-  min-height: 0;
   width: 100%;
-  max-width: 100%;
-  padding: 0 4px;
   text-align: left;
 }
 
@@ -1352,41 +1344,18 @@ html {
   list-style: none;
   padding: 0;
   margin: 0;
-  overflow: visible;
   width: 100%;
 }
 
 .clothing-content li {
-  padding: 8px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #f0f0f0;
   font-weight: 500;
-  display: flex;
-  align-items: flex-start;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.4;
-  position: relative;
-  overflow: visible;
-  white-space: normal;
-  height: auto;
-  flex-wrap: wrap;
-  gap: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #000000;
   width: 100%;
   box-sizing: border-box;
-  min-width: 100%;
-  /* Ensure list items use full available width */
-  justify-content: flex-start;
-  text-align: left;
-}
-
-.clothing-content li::before {
-  content: "•";
-  color: #0C20F4;
-  font-weight: bold;
-  font-size: 18px;
-  margin-right: 12px;
-  line-height: 1;
-  flex-shrink: 0;
 }
 
 .clothing-content li:last-child {
@@ -1394,89 +1363,20 @@ html {
 }
 
 .clothing-content strong {
-  color: #0C20F4 !important;
+  color: #000000 !important;
   font-weight: 700;
-  margin-right: 8px;
-  min-width: 80px;
-  max-width: 140px;
-  flex-shrink: 0;
-  font-size: 15px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  flex: 0 0 auto;
+  font-size: 14px;
+  margin-right: 12px;
 }
 
-/* Handle markdown bold formatting */
-.clothing-content strong:first-child {
-  margin-right: 0px;
-}
-
-/* Ensure proper spacing for bold text */
-.clothing-content li strong {
-  display: inline-block;
-  vertical-align: top;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  -ms-hyphens: auto;
-}
-
-/* Make the description text use remaining width */
-.clothing-content li {
-  justify-content: flex-start;
-  width: 100%;
-  align-items: stretch;
-}
-
-.clothing-content li > *:not(strong) {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-  display: block;
-  /* Ensure text content expands to fill available space */
-  word-break: break-word;
-  hyphens: auto;
-}
-
-/* Ensure the text content after category names uses full width */
 .clothing-content li span,
-.clothing-content li div {
-  width: 100%;
-  max-width: 100%;
-  flex: 1;
-  min-width: 0;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  /* Ensure text expands to fill available space */
-  display: block;
-  word-break: break-word;
-  text-align: left;
-}
-
-/* Force text to use full width */
+.clothing-content li div,
 .clothing-content li .ai-inline-text {
-  width: 100% !important;
-  max-width: 100% !important;
-  display: block !important;
-}
-
-/* Ensure list items use full width */
-.clothing-content li {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Force the text content to expand */
-.clothing-content li > *:not(strong) {
-  width: 100% !important;
-  min-width: 0 !important;
-  flex: 1 !important;
-}
-
-/* Handle very long category names */
-.clothing-content li {
-  break-inside: avoid;
-  page-break-inside: avoid;
+  color: #000000 !important;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.6;
+  display: inline;
 }
 
 /* Style the AI-generated text elements */

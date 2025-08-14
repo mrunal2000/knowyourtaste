@@ -19,33 +19,32 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Metadata array is required' });
     }
 
-    const prompt = `Based on these fashion outfit descriptions, analyze the clothing preferences and style pieces the user gravitates towards. Focus on:
+    const prompt = `Based on these fashion outfit descriptions, provide ONLY key style insights in this exact format:
 
-1. **Silhouette Preferences**: What shapes and cuts they prefer (fitted, loose, structured, flowy)
-2. **Fabric Choices**: Types of materials and textures they're drawn to
-3. **Style Categories**: Specific clothing items they consistently choose
-4. **Fit Preferences**: How they prefer clothes to fit their body
-5. **Layering Style**: How they combine different pieces
-6. **Accessory Preferences**: What types of accessories complement their style
+• **Silhouette** - [2-3 words max]
+• **Fabrics** - [2-3 words max] 
+• **Key Pieces** - [2-3 words max]
+• **Fit Style** - [2-3 words max]
+• **Layering** - [2-3 words max]
+
+Keep each bullet point extremely brief and focused. No explanations, just key terms.
 
 Outfit descriptions:
-${metadata.join('\n')}
-
-Provide a detailed analysis with specific clothing items and insights about the user's style preferences.`;
+${metadata.join('\n')}`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a fashion stylist and clothing analyst expert. Provide detailed, insightful analysis of clothing preferences and style choices based on fashion selections. Focus on specific pieces, silhouettes, and style elements."
+          content: "You are a fashion stylist expert. Provide ONLY brief, key insights in the exact bullet-point format requested. Keep responses extremely concise - no explanations, just key terms."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      max_tokens: 500,
+      max_tokens: 100,
       temperature: 0.7,
     });
 

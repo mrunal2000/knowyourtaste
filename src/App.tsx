@@ -775,7 +775,7 @@ function App() {
         style={getResponsivePosition('clothingPreferences')}
         onMouseDown={(e) => handleMouseDown(e, 'clothingPreferences')}
       >
-        <h3>Your Style Pieces</h3>
+        <h3>Your Style Blueprint</h3>
         <div className="insight-content">
           {isGeneratingInsights ? (
             <div className="insight-loading">
