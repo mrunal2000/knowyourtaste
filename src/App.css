@@ -283,6 +283,17 @@ body {
   margin: 0;
 }
 
+.footer-right .attribution {
+  color: #666;
+  font-size: 12px;
+  margin: 0;
+  font-style: italic;
+  text-align: right;
+  max-width: 350px;
+  line-height: 1.2;
+  white-space: pre-line;
+}
+
 .footer-right {
   display: flex;
   gap: 20px;

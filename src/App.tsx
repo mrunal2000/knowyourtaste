@@ -973,6 +973,9 @@ function App() {
                   <div className="footer-left">
                     <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
                   </div>
+                  <div className="footer-right">
+                    <p className="attribution">* Thanks to all the amazing fashion creators for sharing their incredible style. Photo sources: Pinterest.</p>
+                  </div>
                 </div>
               </footer>
             </div>
