@@ -445,8 +445,8 @@ body {
   justify-content: flex-start;
   width: 100%;
   padding: 20px;
-  /* Remove fixed height to allow content to expand naturally */
-  min-height: auto;
+  position: relative;
+  min-height: 600px;
 }
 
 .empty-state {
@@ -515,6 +515,9 @@ body {
 .liked-images {
   width: 100%;
   max-width: 800px;
+  position: relative;
+  z-index: 1;
+  margin-top: 50px;
 }
 
 .liked-images h3 {
@@ -589,16 +592,19 @@ body {
   right: 8px;
   background: rgba(255, 255, 255, 0.9);
   border: 2px solid #0C20F4;
-  border-radius: 50%;
-  width: 32px;
+  border-radius: 20px;
+  width: auto;
+  min-width: 80px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 12px;
+  padding: 0 12px;
   transition: all 0.2s ease;
   z-index: 10;
+  white-space: nowrap;
 }
 
 .hanger-button:hover {
@@ -779,8 +785,17 @@ body {
 .button-container {
   margin-top: 30px;
   display: flex;
+  flex-direction: column;
   gap: 20px;
   justify-content: center;
+  align-items: center;
+}
+
+.button-row {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Buttons */
@@ -810,6 +825,32 @@ body {
 .no-like-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Reset Button Styling */
+.reset-button {
+  background-color: transparent;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+  width: auto;
+  min-width: 100px;
+}
+
+.reset-button:hover {
+  background-color: #000000;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.reset-button:active {
+  transform: scale(0.95);
 }
 
 /* Person */
@@ -1195,6 +1236,163 @@ body {
 html {
   scroll-behavior: smooth;
   background-color: #FEFFF1;
+}
+
+/* Insight Boxes Styling - Draggable Post-it Layout */
+.insight-box {
+  background: #f8f9fa;
+  border: 3px solid #0C20F4;
+  border-radius: 0;
+  padding: 24px;
+  box-shadow: 4px 4px 0px rgba(12, 32, 244, 0.2);
+  position: absolute;
+  width: 280px;
+  min-height: 200px;
+  transform: rotate(var(--rotation));
+  z-index: var(--z-index);
+  cursor: grab;
+  user-select: none;
+}
+
+.insight-box:active {
+  cursor: grabbing;
+}
+
+.insight-box h3 {
+  color: #0C20F4;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.insight-content {
+  color: #000000 !important;
+  line-height: 1.6;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.insight-box p,
+.insight-box div,
+.insight-box span {
+  color: #000000 !important;
+}
+
+/* Force all text in insight boxes to be black */
+.insight-box * {
+  color: #000000 !important;
+}
+
+.insight-box h3 {
+  color: #0C20F4 !important;
+}
+
+/* Style the AI-generated text elements */
+.insight-box .ai-section-divider {
+  margin: 8px 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.insight-box .ai-section-label {
+  color: #0C20F4 !important;
+  font-weight: 600;
+  display: block;
+  margin: 8px 0 4px 0;
+}
+
+.insight-box .ai-inline-text {
+  color: #000000 !important;
+  display: block;
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+/* Color Swatches Styling */
+.color-swatches {
+  display: flex;
+  gap: 6px;
+  margin: 16px 0;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.color-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.color-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hex-code {
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  color: #666;
+  font-weight: 500;
+}
+
+.color-name {
+  font-size: 9px;
+  font-family: 'P22 Mackinac Pro', sans-serif;
+  color: #333;
+  font-weight: 400;
+  text-align: center;
+  max-width: 60px;
+  line-height: 1.2;
+}
+
+.insight-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Color Insights specific styling */
+.color-insights {
+  top: 60px;
+  left: 40px;
+  --rotation: -3deg;
+  --z-index: 10;
+}
+
+/* Clothing Preferences specific styling */
+.clothing-preferences {
+  top: 160px;
+  left: 40px;
+  --rotation: 2deg;
+  --z-index: 10;
+}
+
+/* Fashion Thesis specific styling */
+.fashion-thesis {
+  top: 100px;
+  right: 40px;
+  --rotation: -1deg;
+  --z-index: 10;
+}
+
+/* Responsive design for insight boxes */
+@media (max-width: 768px) {
+  .insight-box {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .insight-box h3 {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
 }
 
 /* Fix for expandable content pushing layout */

@@ -271,10 +271,12 @@ app.post('/api/fashion-thesis', async (req, res) => {
       messages: [
         {
           role: "user",
-          content: `Based on these outfit analyses: "${combinedContext}", generate a short and actionable fashion thesis (maximum 8 lines) that summarizes the user's style preferences and gives them actionable insights. Focus on: 1) Key style patterns, 2) Color preferences, 3) Specific actionable tips, 4) Style evolution suggestions. Keep it concise, inspiring, and practical.`
+          content: `You are a professional fashion stylist and trend analyst. I will give you a list of images that I personally like. These images represent outfits, colors, silhouettes, textures, and accessories that resonate with me. Study the common patterns across all these images — considering style elements, color palette, fit, proportions, vibe, and subtle recurring details. Then, write a single, natural-sounding paragraph that captures my fashion thesis — a vivid, human description of my style that feels personal and insightful, avoiding vague terms like 'nice' or 'good'. It should help me easily explain my style to someone else and guide my future outfit choices. End with 3–5 concise, actionable style guidelines I can follow when putting together outfits.
+
+Here are the outfit analyses to study: "${combinedContext}"`
         }
       ],
-      max_tokens: 300
+      max_tokens: 120
     });
 
     const thesis = response.choices[0].message.content;
@@ -304,6 +306,123 @@ app.post('/api/fashion-thesis', async (req, res) => {
 
     res.status(500).json({ 
       error: 'Failed to generate fashion thesis. Please try again.',
+      details: error.message
+    });
+  }
+});
+
+// OpenAI color-insights endpoint
+app.post('/api/color-insights', async (req, res) => {
+  try {
+    const { metadata } = req.body;
+
+    if (!metadata || !Array.isArray(metadata) || metadata.length === 0) {
+      return res.status(400).json({ error: 'No metadata array provided' });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        details: 'Please set OPENAI_API_KEY environment variable'
+      });
+    }
+
+    console.log('Generating color insights with metadata count:', metadata.length);
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // Combine all metadata into a single context
+    const combinedContext = metadata.join('. ');
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "user",
+          content: `You are a professional color analyst and fashion expert. I will give you a list of images that I personally like. From these, analyze my color preferences and create a personalized color palette.
+
+First, provide a brief analysis of my color style (2-3 sentences about what colors I'm drawn to and how I use them).
+
+Then, output 6-8 hex color codes that represent my signature color palette. These should be colors that work well together and reflect my style. You MUST output at least 6 colors in this exact format:
+
+• #HEXCODE1 - Color name
+• #HEXCODE2 - Color name  
+• #HEXCODE3 - Color name
+• #HEXCODE4 - Color name
+• #HEXCODE5 - Color name
+• #HEXCODE6 - Color name
+• #HEXCODE7 - Color name (optional)
+• #HEXCODE8 - Color name (optional)
+
+IMPORTANT: Always provide at least 6 colors. Do not cut off or leave incomplete. Each color must have a complete hex code and descriptive name.
+
+Here are the outfit analyses to study: "${combinedContext}"`
+        }
+      ],
+      max_tokens: 120
+    });
+
+    const insights = response.choices[0].message.content;
+    console.log('Generated color insights:', insights);
+
+    res.status(200).json({ insights });
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate color insights. Please try again.',
+      details: error.message
+    });
+  }
+});
+
+// OpenAI clothing-preferences endpoint
+app.post('/api/clothing-preferences', async (req, res) => {
+  try {
+    const { metadata } = req.body;
+
+    if (!metadata || !Array.isArray(metadata) || metadata.length === 0) {
+      return res.status(400).json({ error: 'No metadata array provided' });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        details: 'Please set OPENAI_API_KEY environment variable'
+      });
+    }
+
+    console.log('Generating clothing preferences with metadata count:', metadata.length);
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // Combine all metadata into a single context
+    const combinedContext = metadata.join('. ');
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "user",
+          content: `You are a professional fashion stylist. I will give you a list of images that I personally like. From these, identify the specific clothing pieces, accessories, and footwear that appear most often or stand out. Group similar items together and describe them in plain language, noting any distinctive details like fabric, cut, color, or styling. The tone should be friendly and human, as if you're helping me shop. Output as a simple bullet list of the key pieces I seem drawn to, followed by a one-sentence summary of what this reveals about my taste.
+
+Here are the outfit analyses to study: "${combinedContext}"`
+        }
+      ],
+      max_tokens: 120
+    });
+
+    const preferences = response.choices[0].message.content;
+    console.log('Generated clothing preferences:', preferences);
+
+    res.status(200).json({ preferences });
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate clothing preferences. Please try again.',
       details: error.message
     });
   }

@@ -54,6 +54,21 @@ function App() {
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
+  
+  // New state for color insights and clothing preferences
+  const [colorInsights, setColorInsights] = useState<string>('');
+  const [clothingPreferences, setClothingPreferences] = useState<string>('');
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState<boolean>(false);
+  
+  // State for draggable box positions
+  const [boxPositions, setBoxPositions] = useState({
+    colorInsights: { x: 40, y: 80 },
+    clothingPreferences: { x: 40, y: 200 },
+    fashionThesis: { x: window.innerWidth - 320, y: 140 }
+  });
+  
+  // State for tracking which box is being dragged
+  const [draggedBox, setDraggedBox] = useState<string | null>(null);
 
 
 
@@ -170,7 +185,83 @@ function App() {
     }
   }
 
+  // Generate color insights using GPT API
+  const generateColorInsights = async (metadataList: string[]) => {
+    setIsGeneratingInsights(true)
+    console.log('Generating color insights with metadata:', metadataList)
+    try {
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/color-insights' : '/api/color-insights';
+      
+      console.log('Using color-insights API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadataList,
+        }),
+      });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Color insights API error response:', errorText);
+        throw new Error(`Failed to generate color insights: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Color insights API response:', data);
+      
+      return data.insights;
+    } catch (error) {
+      console.error('Error generating color insights:', error)
+      return 'Your color preferences are unique and evolving!'
+    } finally {
+      setIsGeneratingInsights(false)
+    }
+  }
+
+  // Generate clothing preferences using GPT API
+  const generateClothingPreferences = async (metadataList: string[]) => {
+    setIsGeneratingInsights(true)
+    console.log('Generating clothing preferences with metadata:', metadataList)
+    try {
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/clothing-preferences' : '/api/clothing-preferences';
+      
+      console.log('Using clothing-preferences API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: metadataList,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Clothing preferences API error response:', errorText);
+        throw new Error(`Failed to generate clothing preferences: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Clothing preferences API response:', data);
+      
+      return data.preferences;
+    } catch (error) {
+      console.error('Error generating clothing preferences:', error)
+      return 'Your clothing style is distinctive and personal!'
+    } finally {
+      setIsGeneratingInsights(false)
+    }
+  }
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -196,15 +287,28 @@ function App() {
     saveToLocalStorage(STORAGE_KEYS.ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
-  // Generate thesis when liked images reach 3 or more (for testing)
+  // Generate insights only when visiting "Your Wall" page
   useEffect(() => {
-    console.log('Liked images count:', likedImages.length)
-    if (likedImages.length >= 3) {
+    if (activeTab === 'your wall' && likedImages.length >= 3 && !fashionThesis && !colorInsights && !clothingPreferences) {
       const metadataList = likedImages.map(item => item.metadata)
-      console.log('Metadata list for thesis:', metadataList)
-      generateFashionThesis(metadataList).then(setFashionThesis)
+      console.log('Generating insights for Your Wall page with metadata:', metadataList)
+      console.log('Starting insight generation...')
+      
+      // Generate all insights in parallel for speed
+      Promise.all([
+        generateFashionThesis(metadataList),
+        generateColorInsights(metadataList),
+        generateClothingPreferences(metadataList)
+      ]).then(([thesis, colorInsights, clothingPrefs]) => {
+        console.log('All insights generated:', { thesis, colorInsights, clothingPrefs })
+        setFashionThesis(thesis)
+        setColorInsights(colorInsights)
+        setClothingPreferences(clothingPrefs)
+      }).catch(error => {
+        console.error('Error generating insights:', error)
+      })
     }
-  }, [likedImages])
+  }, [activeTab, likedImages, generateFashionThesis, generateColorInsights, generateClothingPreferences])
 
   // Generate outfit implementation blurb
   const generateOutfitBlurb = async (metadata: string, index: number) => {
@@ -296,6 +400,29 @@ function App() {
     }
   };
 
+  // Drag and drop handlers for insight boxes
+  const handleMouseDown = (e: React.MouseEvent, boxType: string) => {
+    e.preventDefault();
+    setDraggedBox(boxType);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (draggedBox) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setBoxPositions(prev => ({
+        ...prev,
+        [draggedBox]: { x, y }
+      }));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDraggedBox(null);
+  };
+
   const handleLikeClick = async () => {
     // Add current image with metadata to liked images
     const currentImage = images[currentImageIndex]
@@ -335,6 +462,69 @@ function App() {
     }, 300);
   }
 
+  const handleResetAll = () => {
+    setLikedImages([]);
+    setFashionThesis('');
+    setColorInsights('');
+    setClothingPreferences('');
+    setCurrentImageIndex(0);
+    setSelectedImageBlurb('');
+    setClickedImageIndex(null);
+    // Clear local storage
+    localStorage.removeItem('fashion-taster-liked-images');
+    localStorage.removeItem('fashion-taster-current-image-index');
+    localStorage.removeItem('fashion-taster-active-tab');
+  }
+
+  // Parse GPT-generated color palette from color insights text
+  const parseColorPalette = (colorInsights: string) => {
+    if (!colorInsights) return [];
+    
+    // Look for hex codes in the format #HEXCODE - Color name
+    const hexRegex = /#([A-Fa-f0-9]{6})\s*-\s*([^•\n]+)/g;
+    const colors: Array<{hex: string, name: string}> = [];
+    let match;
+    
+    while ((match = hexRegex.exec(colorInsights)) !== null) {
+      // Validate hex code is complete
+      if (match[1] && match[1].length === 6 && match[2]) {
+        colors.push({
+          hex: `#${match[1].toUpperCase()}`,
+          name: match[2].trim()
+        });
+      }
+    }
+    
+    // If no valid hex codes found, return a curated fallback palette
+    if (colors.length === 0) {
+      return [
+        { hex: '#2C3E50', name: 'Deep Navy' },
+        { hex: '#E8C39E', name: 'Warm Beige' },
+        { hex: '#D35400', name: 'Rich Orange' },
+        { hex: '#F8F9FA', name: 'Soft White' },
+        { hex: '#9B59B6', name: 'Amethyst' },
+        { hex: '#E67E22', name: 'Carrot Orange' }
+      ];
+    }
+    
+    // Ensure we have at least 6 colors
+    while (colors.length < 6) {
+      // Add complementary colors based on existing ones
+      const fallbackColors = [
+        { hex: '#95A5A6', name: 'Cool Gray' },
+        { hex: '#E74C3C', name: 'Coral Red' },
+        { hex: '#3498DB', name: 'Sky Blue' },
+        { hex: '#F1C40F', name: 'Golden Yellow' },
+        { hex: '#1ABC9C', name: 'Turquoise' },
+        { hex: '#E91E63', name: 'Pink' }
+      ];
+      colors.push(fallbackColors[colors.length - 1]);
+    }
+    
+    // Return up to 8 colors
+    return colors.slice(0, 8);
+  }
+
 
 
   const renderPlayContent = () => (
@@ -372,11 +562,16 @@ function App() {
       </div>
 
       <div className="button-container">
-        <button className="like-button" onClick={handleLikeClick}>
-          like
-        </button>
-        <button className="no-like-button" onClick={handleNoLikeClick}>
-          no like
+        <div className="button-row">
+          <button className="like-button" onClick={handleLikeClick}>
+            like
+          </button>
+          <button className="no-like-button" onClick={handleNoLikeClick}>
+            no like
+          </button>
+        </div>
+        <button className="reset-button" onClick={handleResetAll}>
+          🔄 reset all
         </button>
       </div>
 
@@ -385,18 +580,85 @@ function App() {
   )
 
   const renderYourWallContent = () => (
-    <div className="your-wall-content">
+    <div 
+      className="your-wall-content"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      {/* Color Insights Box */}
+      {colorInsights && (
+        <div 
+          className="insight-box color-insights"
+          style={{
+            left: `${boxPositions.colorInsights.x}px`,
+            top: `${boxPositions.colorInsights.y}px`
+          }}
+          onMouseDown={(e) => handleMouseDown(e, 'colorInsights')}
+        >
+          <h3>Your Color Palette</h3>
+          <div className="insight-content">
+            {/* Dynamic Color Swatches */}
+            <div className="color-swatches">
+              {parseColorPalette(colorInsights).map((color, index) => (
+                <div key={index} className="color-swatch">
+                  <div className="color-circle" style={{ backgroundColor: color.hex }}></div>
+                  <div className="hex-code">{color.hex}</div>
+                  <div className="color-name">{color.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clothing Preferences Box */}
+      {clothingPreferences && (
+        <div 
+          className="insight-box clothing-preferences"
+          style={{
+            left: `${boxPositions.clothingPreferences.x}px`,
+            top: `${boxPositions.clothingPreferences.y}px`
+          }}
+          onMouseDown={(e) => handleMouseDown(e, 'clothingPreferences')}
+        >
+          <h3>Your Style Pieces</h3>
+          <div className="insight-content">
+            {isGeneratingInsights ? (
+              <div className="insight-loading">
+                <div className="loading-spinner"></div>
+                Analyzing your style preferences...
+              </div>
+            ) : (
+              <div className="clothing-content">
+                <div dangerouslySetInnerHTML={{ __html: formatAIText(clothingPreferences) }} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Fashion Thesis Box */}
       {fashionThesis && (
-        <div className="fashion-thesis">
+        <div 
+          className="insight-box fashion-thesis"
+          style={{
+            left: `${boxPositions.fashionThesis.x}px`,
+            top: `${boxPositions.fashionThesis.y}px`
+          }}
+          onMouseDown={(e) => handleMouseDown(e, 'fashionThesis')}
+        >
           <h3>Your Fashion Thesis</h3>
-          <div className="thesis-content">
+          <div className="insight-content">
             {isGeneratingThesis ? (
-              <div className="thesis-loading">
+              <div className="insight-loading">
                 <div className="loading-spinner"></div>
                 Generating your fashion thesis...
               </div>
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
+              <div className="thesis-content">
+                <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
+              </div>
             )}
           </div>
         </div>
@@ -432,7 +694,7 @@ function App() {
                     }}
                     title="Get outfit recreation tips"
                   >
-                    🧥
+                    🧥 Get Tips
                   </button>
                 </div>
                 <div className="polaroid">
