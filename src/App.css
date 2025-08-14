@@ -447,11 +447,15 @@ body {
   padding: 20px;
   position: relative;
   min-height: 600px;
+  /* Ensure content is above the insights container */
+  z-index: 5;
 }
 
 .empty-state {
   text-align: center;
   color: #666;
+  position: relative;
+  z-index: 10;
 }
 
 .empty-state h2 {
@@ -516,7 +520,7 @@ body {
   width: 100%;
   max-width: 800px;
   position: relative;
-  z-index: 1;
+  z-index: 10;
   margin-top: 50px;
 }
 
@@ -1239,6 +1243,23 @@ html {
 }
 
 /* Insight Boxes Styling - Draggable Post-it Layout */
+/* Ensure the container allows insight boxes to be positioned anywhere */
+.insights-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: visible;
+  pointer-events: none;
+  /* Ensure insight boxes can be positioned anywhere on screen */
+  z-index: 1000;
+}
+
+.insights-container * {
+  pointer-events: auto;
+}
+
 .insight-box {
   background: #f8f9fa;
   border: 3px solid #0C20F4;
@@ -1246,7 +1267,7 @@ html {
   padding: 24px;
   box-shadow: 4px 4px 0px rgba(12, 32, 244, 0.2);
   position: absolute;
-  width: 280px;
+  width: 320px;
   min-height: 200px;
   height: auto;
   max-height: none;
@@ -1257,11 +1278,19 @@ html {
   user-select: none;
   white-space: normal;
   transition: all 0.3s ease;
+  /* Ensure boxes don't get cut off at screen edges */
+  box-sizing: border-box;
+  /* Add a subtle glow when near screen boundaries */
+  filter: drop-shadow(0 0 0 rgba(12, 32, 244, 0));
+  /* Ensure boxes are always visible above other content */
+  z-index: 1001;
 }
 
 .insight-box:hover {
   transform: rotate(var(--rotation)) scale(1.02);
   box-shadow: 6px 6px 0px rgba(12, 32, 244, 0.3);
+  /* Add subtle glow effect on hover */
+  filter: drop-shadow(0 0 8px rgba(12, 32, 244, 0.2));
 }
 
 .insight-box:active {
@@ -1284,6 +1313,7 @@ html {
   overflow: visible;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  text-align: left;
 }
 
 .insight-box p,
@@ -1312,6 +1342,10 @@ html {
   white-space: normal;
   height: auto;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 4px;
+  text-align: left;
 }
 
 .clothing-content ul {
@@ -1319,6 +1353,7 @@ html {
   padding: 0;
   margin: 0;
   overflow: visible;
+  width: 100%;
 }
 
 .clothing-content li {
@@ -1334,6 +1369,14 @@ html {
   overflow: visible;
   white-space: normal;
   height: auto;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 100%;
+  /* Ensure list items use full available width */
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .clothing-content li::before {
@@ -1355,19 +1398,85 @@ html {
   font-weight: 700;
   margin-right: 8px;
   min-width: 80px;
+  max-width: 140px;
   flex-shrink: 0;
   font-size: 15px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  flex: 0 0 auto;
 }
 
 /* Handle markdown bold formatting */
 .clothing-content strong:first-child {
-  margin-right: 12px;
+  margin-right: 0px;
 }
 
 /* Ensure proper spacing for bold text */
 .clothing-content li strong {
   display: inline-block;
   vertical-align: top;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+}
+
+/* Make the description text use remaining width */
+.clothing-content li {
+  justify-content: flex-start;
+  width: 100%;
+  align-items: stretch;
+}
+
+.clothing-content li > *:not(strong) {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  display: block;
+  /* Ensure text content expands to fill available space */
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Ensure the text content after category names uses full width */
+.clothing-content li span,
+.clothing-content li div {
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  /* Ensure text expands to fill available space */
+  display: block;
+  word-break: break-word;
+  text-align: left;
+}
+
+/* Force text to use full width */
+.clothing-content li .ai-inline-text {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+/* Ensure list items use full width */
+.clothing-content li {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Force the text content to expand */
+.clothing-content li > *:not(strong) {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+/* Handle very long category names */
+.clothing-content li {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 /* Style the AI-generated text elements */
@@ -1463,7 +1572,7 @@ html {
 /* Fashion Thesis specific styling */
 .fashion-thesis {
   top: 100px;
-  right: 40px;
+  right: 150px;
   --rotation: -1deg;
   --z-index: 10;
 }
@@ -1487,11 +1596,15 @@ html {
   .clothing-content li {
     padding: 6px 0;
     font-size: 13px;
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .clothing-content strong {
     min-width: 70px;
+    max-width: 100%;
     font-size: 13px;
+    margin-bottom: 4px;
   }
   
   .clothing-content li::before {
@@ -1670,6 +1783,10 @@ html {
   
   .your-wall-content {
     min-height: 800px;
+  }
+  
+  .fashion-thesis {
+    right: 150px;
   }
 }
 

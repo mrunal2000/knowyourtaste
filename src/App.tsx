@@ -64,11 +64,43 @@ function App() {
   const [boxPositions, setBoxPositions] = useState({
     colorInsights: { x: 40, y: 80 },
     clothingPreferences: { x: 40, y: 200 },
-    fashionThesis: { x: window.innerWidth - 320, y: 140 }
+    fashionThesis: { x: Math.max(40, window.innerWidth - 360), y: 140 }
   });
   
   // State for tracking which box is being dragged
   const [draggedBox, setDraggedBox] = useState<string | null>(null);
+  
+  // Flag to ensure insights are only generated once per session
+  const [insightsGenerated, setInsightsGenerated] = useState<boolean>(false);
+
+  // Handle window resize to keep boxes within bounds
+  useEffect(() => {
+    const handleResize = () => {
+      setBoxPositions(prev => {
+        const boxWidth = 320;
+        const boxHeight = 200;
+        const margin = 20;
+        
+        return {
+          colorInsights: {
+            x: Math.max(margin, Math.min(prev.colorInsights.x, window.innerWidth - boxWidth - margin)),
+            y: Math.max(margin, Math.min(prev.colorInsights.y, window.innerHeight - boxHeight - margin))
+          },
+          clothingPreferences: {
+            x: Math.max(margin, Math.min(prev.clothingPreferences.x, window.innerWidth - boxWidth - margin)),
+            y: Math.max(margin, Math.min(prev.clothingPreferences.y, window.innerHeight - boxHeight - margin))
+          },
+          fashionThesis: {
+            x: Math.max(margin, Math.min(prev.fashionThesis.x, window.innerWidth - boxWidth - margin)),
+            y: Math.max(margin, Math.min(prev.fashionThesis.y, window.innerHeight - boxHeight - margin))
+          }
+        };
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
 
 
@@ -307,12 +339,21 @@ function App() {
     saveToLocalStorage(STORAGE_KEYS.ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
-  // Generate insights only when visiting "Your Wall" page
+  // Generate insights only when visiting "Your Wall" page - ONCE ONLY
   useEffect(() => {
-    if (activeTab === 'your wall' && likedImages.length >= 3 && !fashionThesis && !colorInsights && !clothingPreferences) {
+    // Only generate if we're on "Your Wall" page, have enough liked images, NO insights exist yet, and we haven't generated this session
+    if (activeTab === 'your wall' && likedImages.length >= 3 && !fashionThesis && !colorInsights && !clothingPreferences && !insightsGenerated) {
       const metadataList = likedImages.map(item => item.metadata)
-      console.log('Generating insights for Your Wall page with metadata:', metadataList)
-      console.log('Starting insight generation...')
+      console.log('🚀 GENERATING INSIGHTS: First time visit to Your Wall page')
+      console.log('📊 Metadata count:', metadataList.length)
+      console.log('💡 This will only happen ONCE per session')
+      
+      // Mark that we're generating insights this session
+      setInsightsGenerated(true)
+      
+      // Set loading states
+      setIsGeneratingThesis(true)
+      setIsGeneratingInsights(true)
       
       // Generate all insights in parallel for speed
       Promise.all([
@@ -320,15 +361,27 @@ function App() {
         generateColorInsights(metadataList),
         generateClothingPreferences(metadataList)
       ]).then(([thesis, colorInsights, clothingPrefs]) => {
-        console.log('All insights generated:', { thesis, colorInsights, clothingPrefs })
+        console.log('✅ All insights generated successfully - NO MORE API CALLS')
         setFashionThesis(thesis)
         setColorInsights(colorInsights)
         setClothingPreferences(clothingPrefs)
       }).catch(error => {
-        console.error('Error generating insights:', error)
+        console.error('❌ Error generating insights:', error)
+        // Set fallback content on error
+        setFashionThesis('Unable to generate fashion thesis at this time.')
+        setColorInsights('Unable to analyze color preferences at this time.')
+        setClothingPreferences('Unable to analyze style preferences at this time.')
+      }).finally(() => {
+        // Clear loading states
+        setIsGeneratingInsights(false)
+        setIsGeneratingThesis(false)
       })
+    } else if (activeTab === 'your wall' && insightsGenerated) {
+      console.log('🔄 Insights already generated this session - NO API CALLS')
+    } else if (activeTab === 'your wall' && (fashionThesis || colorInsights || clothingPreferences)) {
+      console.log('📋 Insights already exist - NO API CALLS')
     }
-  }, [activeTab, likedImages, generateFashionThesis, generateColorInsights, generateClothingPreferences])
+  }, [activeTab, likedImages.length, fashionThesis, colorInsights, clothingPreferences, insightsGenerated])
 
   // Generate outfit implementation blurb
   const generateOutfitBlurb = async (metadata: string, index: number) => {
@@ -429,8 +482,19 @@ function App() {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (draggedBox) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      let x = e.clientX - rect.left;
+      let y = e.clientY - rect.top;
+      
+      // Add boundary constraints to prevent boxes from going outside screen
+      const boxWidth = 320; // Width of insight boxes
+      const boxHeight = 200; // Minimum height of insight boxes
+      const margin = 20; // Minimum margin from screen edges
+      
+      // Constrain x position (left and right boundaries)
+      x = Math.max(margin, Math.min(x, window.innerWidth - boxWidth - margin));
+      
+      // Constrain y position (top and bottom boundaries)
+      y = Math.max(margin, Math.min(y, window.innerHeight - boxHeight - margin));
       
       setBoxPositions(prev => ({
         ...prev,
@@ -541,6 +605,7 @@ function App() {
     setCurrentImageIndex(0);
     setSelectedImageBlurb('');
     setClickedImageIndex(null);
+    setInsightsGenerated(false); // Allow insights to be generated again
     // Clear local storage
     localStorage.removeItem('fashion-taster-liked-images');
     localStorage.removeItem('fashion-taster-current-image-index');
@@ -669,12 +734,14 @@ function App() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Color Insights Box - Always Visible */}
-      <div 
-        className="insight-box color-insights"
-        style={getResponsivePosition('colorInsights')}
-        onMouseDown={(e) => handleMouseDown(e, 'colorInsights')}
-      >
+      {/* Container for draggable insight boxes */}
+      <div className="insights-container">
+        {/* Color Insights Box - Always Visible */}
+        <div 
+          className="insight-box color-insights"
+          style={getResponsivePosition('colorInsights')}
+          onMouseDown={(e) => handleMouseDown(e, 'colorInsights')}
+        >
         <h3>Your Color Palette</h3>
         <div className="insight-content">
           {isGeneratingInsights ? (
@@ -753,6 +820,7 @@ function App() {
           )}
         </div>
       </div>
+      </div> {/* Close insights-container */}
       
       {likedImages.length === 0 ? (
         <div className="empty-state">
