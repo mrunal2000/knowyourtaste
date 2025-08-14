@@ -407,9 +407,22 @@ app.post('/api/clothing-preferences', async (req, res) => {
       messages: [
         {
           role: "user",
-          content: `You are a professional fashion stylist. I will give you a list of outfit metadata that I personally like. Based on these, simply list out the key types of clothing pieces, accessories, and footwear that I seem to prefer. 
+          content: `You are a professional fashion stylist. I will give you a list of outfit metadata that I personally like. Based on these, identify the key clothing pieces I prefer.
 
-Output as a clean, simple bullet list of the main clothing categories and pieces I'm drawn to. Keep it concise and focused on the types of items, not detailed descriptions.
+Output format - use EXACTLY this format with **bold** markdown:
+• **Outerwear** - Structured blazers
+• **Tops** - Fitted button-downs
+• **Bottoms** - High-waisted pants
+• **Accessories** - Statement jewelry
+• **Footwear** - Classic pumps
+
+IMPORTANT: 
+- Use **bold** markdown formatting for ALL category names
+- Keep each line to 3-5 words maximum
+- Focus on the main categories and pieces, not detailed descriptions
+- Maximum 6-8 bullet points total
+- Output the text exactly as shown above with ** ** around category names
+- NO long descriptions, just category - brief item type
 
 Here are the outfit metadata to analyze: "${combinedContext}"`
         }

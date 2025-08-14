@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import './App.css'
 
@@ -91,7 +91,27 @@ function App() {
         const cleanHeading = trimmedLine.replace(/\*\*/g, '').trim();
         return `<div class="ai-section-divider"></div><strong class="ai-section-label">${cleanHeading}:</strong>`;
       } else if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
-        // Convert bullet points to inline text with bold labels
+        // Special handling for clothing preferences format: "• **Category** - Description"
+        if (trimmedLine.includes('**') && trimmedLine.includes(' - ')) {
+          const parts = trimmedLine.split(' - ');
+          if (parts.length === 2) {
+            const category = parts[0].replace(/^[•\-]\s*/, '').trim();
+            const description = parts[1].trim();
+            
+            // Extract the category name from **Category** format
+            const categoryName = category.replace(/\*\*/g, '').trim();
+            
+            return `<li><strong>${categoryName}</strong> - ${description}</li>`;
+          }
+        }
+        
+        // Handle lines that start with ** but don't have the - separator
+        if (trimmedLine.includes('**')) {
+          const categoryName = trimmedLine.replace(/^[•\-]\s*/, '').replace(/\*\*/g, '').trim();
+          return `<li><strong>${categoryName}</strong></li>`;
+        }
+        
+        // Regular bullet point handling
         const cleanText = trimmedLine.replace(/^[•\-]\s*/, '').trim();
         return `<span class="ai-inline-text">${cleanText}</span>`;
       } else if (trimmedLine.match(/^\d+\./)) {
@@ -225,7 +245,7 @@ function App() {
   }
 
   // Generate clothing preferences using GPT API
-  const generateClothingPreferences = async (metadataList: string[]) => {
+  const generateClothingPreferences = useCallback(async (metadataList: string[]) => {
     setIsGeneratingInsights(true)
     console.log('Generating clothing preferences with metadata:', metadataList)
     try {
@@ -261,7 +281,7 @@ function App() {
     } finally {
       setIsGeneratingInsights(false)
     }
-  }
+  }, [])
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -527,6 +547,18 @@ function App() {
     localStorage.removeItem('fashion-taster-active-tab');
   }
 
+  // Get responsive positioning for insight boxes
+  const getResponsivePosition = (boxType: string) => {
+    const isMobile = window.innerWidth <= 991;
+    if (isMobile) {
+      return { left: 'auto', top: 'auto' };
+    }
+    return {
+      left: `${boxPositions[boxType as keyof typeof boxPositions].x}px`,
+      top: `${boxPositions[boxType as keyof typeof boxPositions].y}px`
+    };
+  };
+
   // Parse GPT-generated color palette from color insights text
   const parseColorPalette = (colorInsights: string) => {
     if (!colorInsights) return [];
@@ -637,19 +669,21 @@ function App() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Color Insights Box */}
-      {colorInsights && (
-        <div 
-          className="insight-box color-insights"
-          style={{
-            left: `${boxPositions.colorInsights.x}px`,
-            top: `${boxPositions.colorInsights.y}px`
-          }}
-          onMouseDown={(e) => handleMouseDown(e, 'colorInsights')}
-        >
-          <h3>Your Color Palette</h3>
-          <div className="insight-content">
-            {/* Dynamic Color Swatches */}
+      {/* Color Insights Box - Always Visible */}
+      <div 
+        className="insight-box color-insights"
+        style={getResponsivePosition('colorInsights')}
+        onMouseDown={(e) => handleMouseDown(e, 'colorInsights')}
+      >
+        <h3>Your Color Palette</h3>
+        <div className="insight-content">
+          {isGeneratingInsights ? (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Analyzing your color preferences...
+            </div>
+          ) : colorInsights ? (
+            /* Dynamic Color Swatches */
             <div className="color-swatches">
               {parseColorPalette(colorInsights).map((color, index) => (
                 <div key={index} className="color-swatch">
@@ -659,61 +693,66 @@ function App() {
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Waiting for your style data...
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Clothing Preferences Box */}
-      {clothingPreferences && (
-        <div 
-          className="insight-box clothing-preferences"
-          style={{
-            left: `${boxPositions.clothingPreferences.x}px`,
-            top: `${boxPositions.clothingPreferences.y}px`
-          }}
-          onMouseDown={(e) => handleMouseDown(e, 'clothingPreferences')}
-        >
-          <h3>Your Style Pieces</h3>
-          <div className="insight-content">
-            {isGeneratingInsights ? (
-              <div className="insight-loading">
-                <div className="loading-spinner"></div>
-                Analyzing your style preferences...
-              </div>
-            ) : (
-              <div className="clothing-content">
-                <div dangerouslySetInnerHTML={{ __html: formatAIText(clothingPreferences) }} />
-              </div>
-            )}
-          </div>
+      {/* Clothing Preferences Box - Always Visible */}
+      <div 
+        className="insight-box clothing-preferences"
+        style={getResponsivePosition('clothingPreferences')}
+        onMouseDown={(e) => handleMouseDown(e, 'clothingPreferences')}
+      >
+        <h3>Your Style Pieces</h3>
+        <div className="insight-content">
+          {isGeneratingInsights ? (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Analyzing your style preferences...
+            </div>
+          ) : clothingPreferences ? (
+            <div className="clothing-content">
+              <ul dangerouslySetInnerHTML={{ __html: formatAIText(clothingPreferences) }} />
+            </div>
+          ) : (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Waiting for your style data...
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Fashion Thesis Box */}
-      {fashionThesis && (
-        <div 
-          className="insight-box fashion-thesis"
-          style={{
-            left: `${boxPositions.fashionThesis.x}px`,
-            top: `${boxPositions.fashionThesis.y}px`
-          }}
-          onMouseDown={(e) => handleMouseDown(e, 'fashionThesis')}
-        >
-          <h3>Your Fashion Thesis</h3>
-          <div className="insight-content">
-            {isGeneratingThesis ? (
-              <div className="insight-loading">
-                <div className="loading-spinner"></div>
-                Generating your fashion thesis...
-              </div>
-            ) : (
-              <div className="thesis-content">
-                <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
-              </div>
-            )}
-          </div>
+      {/* Fashion Thesis Box - Always Visible */}
+      <div 
+        className="insight-box fashion-thesis"
+        style={getResponsivePosition('fashionThesis')}
+        onMouseDown={(e) => handleMouseDown(e, 'fashionThesis')}
+      >
+        <h3>Your Fashion Thesis</h3>
+        <div className="insight-content">
+          {isGeneratingThesis ? (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Generating your fashion thesis...
+            </div>
+          ) : fashionThesis ? (
+            <div className="thesis-content">
+              <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
+            </div>
+          ) : (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Waiting for your style data...
+            </div>
+          )}
         </div>
-      )}
+      </div>
       
       {likedImages.length === 0 ? (
         <div className="empty-state">
