@@ -19,17 +19,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Metadata array is required' });
     }
 
-    const prompt = `Analyze ALL of these fashion outfit descriptions TOGETHER to create ONE comprehensive style blueprint. Look for patterns and common themes across all outfits to identify the user's overall style preferences.
+    const prompt = `Analyze ALL of these fashion outfit descriptions TOGETHER to identify the specific clothing pieces and accessories the user consistently likes. Look for patterns in their actual clothing choices.
 
 Provide ONLY key style insights in this exact format:
 
-• **Silhouette** - [2-3 words max - overall preference across all outfits]
-• **Fabrics** - [2-3 words max - common materials they choose]
-• **Key Pieces** - [2-3 words max - signature items they gravitate toward]
-• **Fit Style** - [2-3 words max - how they prefer clothes to fit]
-• **Layering** - [2-3 words max - their layering approach]
+• **Tops** - [specific types like: loose tops, fitted tops, crop tops, oversized sweaters, etc.]
+• **Bottoms** - [specific types like: tailored trousers, high-waisted jeans, midi skirts, etc.]
+• **Outerwear** - [specific types like: blazers, leather jackets, oversized coats, etc.]
+• **Accessories** - [specific types like: bold jewelry, gold accessories, statement bags, etc.]
+• **Shoes** - [specific types like: ankle boots, sneakers, heels, etc.]
 
-Keep each bullet point extremely brief and focused. No explanations, just key terms.
+Focus on identifying the actual clothing pieces they choose, not abstract style concepts. Keep each bullet point specific and brief.
 
 ALL Outfit Descriptions (analyze together):
 ${metadata.join('\n')}`;
@@ -39,7 +39,7 @@ ${metadata.join('\n')}`;
       messages: [
         {
           role: "system",
-          content: "You are a fashion stylist expert. Analyze ALL outfit descriptions TOGETHER to find common patterns and create ONE comprehensive style blueprint. Provide ONLY brief, key insights in the exact bullet-point format requested. Keep responses extremely concise - no explanations, just key terms."
+          content: "You are a fashion stylist expert. Analyze ALL outfit descriptions TOGETHER to identify the specific clothing pieces and accessories the user consistently chooses. Focus on actual clothing items, not abstract style concepts. Provide ONLY brief, specific insights in the exact bullet-point format requested."
         },
         {
           role: "user",
