@@ -19,17 +19,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Metadata array is required' });
     }
 
-    const prompt = `Based on these fashion outfit descriptions, provide ONLY key style insights in this exact format:
+    const prompt = `Analyze ALL of these fashion outfit descriptions TOGETHER to create ONE comprehensive style blueprint. Look for patterns and common themes across all outfits to identify the user's overall style preferences.
 
-• **Silhouette** - [2-3 words max]
-• **Fabrics** - [2-3 words max] 
-• **Key Pieces** - [2-3 words max]
-• **Fit Style** - [2-3 words max]
-• **Layering** - [2-3 words max]
+Provide ONLY key style insights in this exact format:
+
+• **Silhouette** - [2-3 words max - overall preference across all outfits]
+• **Fabrics** - [2-3 words max - common materials they choose]
+• **Key Pieces** - [2-3 words max - signature items they gravitate toward]
+• **Fit Style** - [2-3 words max - how they prefer clothes to fit]
+• **Layering** - [2-3 words max - their layering approach]
 
 Keep each bullet point extremely brief and focused. No explanations, just key terms.
 
-Outfit descriptions:
+ALL Outfit Descriptions (analyze together):
 ${metadata.join('\n')}`;
 
     const completion = await openai.chat.completions.create({
@@ -37,7 +39,7 @@ ${metadata.join('\n')}`;
       messages: [
         {
           role: "system",
-          content: "You are a fashion stylist expert. Provide ONLY brief, key insights in the exact bullet-point format requested. Keep responses extremely concise - no explanations, just key terms."
+          content: "You are a fashion stylist expert. Analyze ALL outfit descriptions TOGETHER to find common patterns and create ONE comprehensive style blueprint. Provide ONLY brief, key insights in the exact bullet-point format requested. Keep responses extremely concise - no explanations, just key terms."
         },
         {
           role: "user",
