@@ -19,32 +19,34 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Metadata array is required' });
     }
 
-    const prompt = `Based on these fashion outfit descriptions, analyze the color preferences and create a comprehensive color palette analysis. Focus on:
+    const prompt = `Based on these fashion outfit descriptions, analyze the color preferences and create a color palette. 
 
-1. **Primary Colors**: What main colors appear most frequently
-2. **Color Combinations**: How colors are paired together
-3. **Color Psychology**: What these color choices say about style preferences
-4. **Seasonal Color Trends**: Any seasonal color patterns
-5. **Color Intensity**: Preference for bold vs. muted colors
+IMPORTANT: Provide colors in this EXACT format:
+#HEXCODE - Color Name (e.g., #FF6B6B - Coral Red)
+
+Focus on:
+1. **Primary Colors**: 3-4 main colors the user gravitates toward
+2. **Accent Colors**: 2-3 complementary colors they use
+3. **Neutral Colors**: 2-3 neutral/base colors they prefer
 
 Outfit descriptions:
 ${metadata.join('\n')}
 
-Provide a detailed analysis with specific color names and insights about the user's color preferences.`;
+Provide ONLY the color palette in hex format with color names. No explanations, just the colors.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a fashion color analyst expert. Provide detailed, insightful analysis of color preferences based on fashion choices. Use specific color names and explain the psychology behind color choices."
+          content: "You are a fashion color analyst expert. Provide ONLY a color palette in hex format with color names. Use the exact format: #HEXCODE - Color Name. Focus on identifying the actual colors the user chooses, not abstract analysis."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      max_tokens: 500,
+      max_tokens: 150,
       temperature: 0.7,
     });
 

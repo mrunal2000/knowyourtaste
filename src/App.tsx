@@ -160,68 +160,68 @@ function App() {
     return formattedLines.join('');
   };
 
-  // All outfit and fashion images available in the app
+  // All outfit and fashion images available in the app (using cropped versions)
   const images = [
-    // New fashion images (primary collection)
-    '/1c623499be27e2195562655131e41175.jpg',
-    '/1d0a99081666f4a119e115f1644479f9.jpg',
-    '/1dbcb9365ffd38733a59a6ef8103d271.jpg',
-    '/1e40320294fd6befef0d50b179b49e98.jpg',
-    '/220d562e59828a8c287c0c43548d2f6f.jpg',
-    '/29cefb0ef7853ed6c6faa68364506b53.jpg',
-    '/2ce6c8460cdf4109769217e32120ec02.jpg',
-    '/30d2fe0d9e859c6aac4abdbec48f8b1c.jpg',
-    '/47f877955eec8b5b96afedb1889a56ff.jpg',
-    '/505dd70ccb4338f90f1790ed46c85c1c.jpg',
-    '/54e5c226dfcb149d97e1354117034d76.jpg',
-    '/64fc81cd38149c3a306c029b16d31df7.jpg',
-    '/679a46305477779418f6b490628a823d.jpg',
-    '/6e6b55a0df548b8780f778f8eb990e95.jpg',
-    '/6e6c39efe740ef818d270d49ebaa7e8c.jpg',
-    '/719846b78e4fedce59debefd0604f24b.jpg',
-    '/7bddea1debd393d9899de0f8ea938e2e.jpg',
-    '/7e9f1f25c227816118998980f7e389b6.jpg',
-    '/8d1a1b38b296f3a5735c21f1192d8295.jpg',
-    '/93679253d5198ad65a50a9550aeb5a7b.jpg',
-    '/9788e5417c2811c385ec99cde6146e06.jpg',
-    '/9b6d2c71d04348b01850d493846938cd.jpg',
-    '/a089c0a3a37f6127470f93692ce63a72.jpg',
-    '/bc7b0d0d52a66d8f801aa3ed2d59dad5.jpg',
-    '/ce069b6cdfbbe8fe2310f02932530b74.jpg',
-    '/d273d88018015f4662e590ba66729f13.jpg',
-    '/dc600dc551029b6fb111fac2a69be4db.jpg',
-    '/dcb4f112f4d9dcc0eaa94478a5e627c.jpg',
-    '/ed7e44cd1ccf31b36c1eea4a7e85963a.jpg',
-    '/f4ec203b865bf79311ad67ed441d53cc.jpg',
-    '/ff5e20358374067b9207ec6e278d8f28.jpg',
-    // Original screenshots (secondary collection)
-    '/screenshot.png',
-    '/screenshot1.png',
-    '/screenshot2.png',
-    '/screenshot3.png',
-    '/screenshot4.png',
-    '/screenshot5.png',
-    '/screenshot6.png',
-    '/screenshot7.png',
-    '/screenshot8.png',
-    '/screenshot9.png',
-    '/screenshot10.png',
-    '/screenshot11.jpg',
-    '/screenshot12.jpg',
-    '/screenshot13.jpg',
-    '/screenshot14.jpg',
-    '/screenshot15.jpg',
-    // Pinterest fashion outfit inspiration (tertiary collection)
-    '/pinterest_outfit_001.jpg',
-    '/pinterest_outfit_002.jpg',
-    '/pinterest_outfit_004.jpg',
-    '/pinterest_outfit_005.jpg',
-    '/pinterest_outfit_006.jpg',
-    '/pinterest_outfit_009.jpg',
-    '/pinterest_outfit_011.jpg',
-    '/pinterest_outfit_012.jpg',
-    '/pinterest_outfit_014.jpg',
-    '/pinterest_outfit_015.jpg'
+    // New fashion images (primary collection) - cropped versions
+    '/cropped/cropped_1c623499be27e2195562655131e41175.jpg',
+    '/cropped/cropped_1d0a99081666f4a119e115f1644479f9.jpg',
+    '/cropped/cropped_1dbcb9365ffd38733a59a6ef8103d271.jpg',
+    '/cropped/cropped_1e40320294fd6befef0d50b179b49e98.jpg',
+    '/cropped/cropped_220d562e59828a8c287c0c43548d2f6f.jpg',
+    '/cropped/cropped_29cefb0ef7853ed6c6faa68364506b53.jpg',
+    '/cropped/cropped_2ce6c8460cdf4109769217e32120ec02.jpg',
+    '/cropped/cropped_30d2fe0d9e859c6aac4abdbec48f8b1c.jpg',
+    '/cropped/cropped_47f877955eec8b5b96afedb1889a56ff.jpg',
+    '/cropped/cropped_505dd70ccb4338f90f1790ed46c85c1c.jpg',
+    '/cropped/cropped_54e5c226dfcb149d97e1354117034d76.jpg',
+    '/cropped/cropped_64fc81cd38149c3a306c029b16d31df7.jpg',
+    '/cropped/cropped_679a46305477779418f6b490628a823d.jpg',
+    '/cropped/cropped_6e6b55a0df548b8780f778f8eb990e95.jpg',
+    '/cropped/cropped_6e6c39efe740ef818d270d49ebaa7e8c.jpg',
+    '/cropped/cropped_719846b78e4fedce59debefd0604f24b.jpg',
+    '/cropped/cropped_7bddea1debd393d9899de0f8ea938e2e.jpg',
+    '/cropped/cropped_7e9f1f25c227816118998980f7e389b6.jpg',
+    '/cropped/cropped_8d1a1b38b296f3a5735c21f1192d8295.jpg',
+    '/cropped/cropped_93679253d5198ad65a50a9550aeb5a7b.jpg',
+    '/cropped/cropped_9788e5417c2811c385ec99cde6146e06.jpg',
+    '/cropped/cropped_9b6d2c71d04348b01850d493846938cd.jpg',
+    '/cropped/cropped_a089c0a3a37f6127470f93692ce63a72.jpg',
+    '/cropped/cropped_bc7b0d0d52a66d8f801aa3ed2d59dad5.jpg',
+    '/cropped/cropped_ce069b6cdfbbe8fe2310f02932530b74.jpg',
+    '/cropped/cropped_d273d88018015f4662e590ba66729f13.jpg',
+    '/cropped/cropped_dc600dc551029b6fb111fac2a69be4db.jpg',
+    '/cropped/cropped_dcb4f112f4d9dcc0eaa94478a5e627c.jpg',
+    '/cropped/cropped_ed7e44cd1ccf31b36c1eea4a7e85963a.jpg',
+    '/cropped/cropped_f4ec203b865bf79311ad67ed441d53cc.jpg',
+    '/cropped/cropped_ff5e20358374067b9207ec6e278d8f28.jpg',
+    // Original screenshots (secondary collection) - cropped versions
+    '/cropped/cropped_screenshot.png',
+    '/cropped/cropped_screenshot1.png',
+    '/cropped/cropped_screenshot2.png',
+    '/cropped/cropped_screenshot3.png',
+    '/cropped/cropped_screenshot4.png',
+    '/cropped/cropped_screenshot5.png',
+    '/cropped/cropped_screenshot6.png',
+    '/cropped/cropped_screenshot7.png',
+    '/cropped/cropped_screenshot8.png',
+    '/cropped/cropped_screenshot9.png',
+    '/cropped/cropped_screenshot10.png',
+    '/cropped/cropped_screenshot11.jpg',
+    '/cropped/cropped_screenshot12.jpg',
+    '/cropped/cropped_screenshot13.jpg',
+    '/cropped/cropped_screenshot14.jpg',
+    '/cropped/cropped_screenshot15.jpg',
+    // Pinterest fashion outfit inspiration (tertiary collection) - cropped versions
+    '/cropped/cropped_pinterest_outfit_001.jpg',
+    '/cropped/cropped_pinterest_outfit_002.jpg',
+    '/cropped/cropped_pinterest_outfit_004.jpg',
+    '/cropped/cropped_pinterest_outfit_005.jpg',
+    '/cropped/cropped_pinterest_outfit_006.jpg',
+    '/cropped/cropped_pinterest_outfit_009.jpg',
+    '/cropped/cropped_pinterest_outfit_011.jpg',
+    '/cropped/cropped_pinterest_outfit_012.jpg',
+    '/cropped/cropped_pinterest_outfit_014.jpg',
+    '/cropped/cropped_pinterest_outfit_015.jpg'
   ]
 
 
@@ -572,6 +572,18 @@ function App() {
       } else if (['11', '12', '13', '14', '15'].includes(screenshotNumber)) {
         metadata += `Presents creative tops, artistic dresses, unique pants, statement jackets, and bold skirts. Includes artistic accessories like mixed jewelry, creative bags, and distinctive shoes. Style: innovative and artistic expression.`;
       }
+    } else if (filename.match(/^[a-f0-9]{32}\.jpg$/)) {
+      // New fashion images with hash filenames - provide detailed, varied descriptions
+      const imageHash = filename.split('.')[0];
+      const hashNumber = parseInt(imageHash.slice(-2), 16) % 10; // Use last 2 chars to create variety
+      
+      if (hashNumber <= 3) {
+        metadata += `Features fitted tops, high-waisted pants, midi dresses, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Color palette: neutral tones, earth colors, classic blacks/navys. Style: contemporary and versatile.`;
+      } else if (hashNumber <= 6) {
+        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, midi skirts, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases. Style: relaxed and bold.`;
+      } else {
+        metadata += `Displays silk blouses, tailored pants, fitted dresses, structured skirts, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones. Style: elegant and refined.`;
+      }
     } else {
       // Generic images
       metadata += `Fashion inspiration image featuring fitted tops, versatile pants, stylish dresses, and contemporary outerwear. Includes modern accessories like statement jewelry, trendy bags, and fashionable shoes. Style: contemporary and versatile.`;
@@ -716,7 +728,7 @@ function App() {
         <div className="image-box">
           <img 
             src={images[currentImageIndex]}
-            alt={`Screenshot ${currentImageIndex + 1}`}
+            alt={`Fashion image ${currentImageIndex + 1}`}
             className="screenshot-image"
             onError={(e) => {
               console.error('Image failed to load');
