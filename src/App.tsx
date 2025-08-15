@@ -379,38 +379,47 @@ function App() {
     
     // Only generate if we're on "Your Wall" page and have enough liked images
     if (activeTab === 'your wall' && likedImages.length >= 3) {
-      const metadataList = likedImages.map(item => item.metadata)
-      console.log('🚀 REGENERATING INSIGHTS: Liked images changed')
-      console.log('📊 Metadata count:', metadataList.length)
-      console.log('💡 This will happen every time you like/dislike images')
+      // Add a small delay to prevent rapid regeneration when liking multiple images quickly
+      const timeoutId = setTimeout(() => {
+        const metadataList = likedImages.map(item => item.metadata)
+        console.log('🚀 REGENERATING INSIGHTS: Liked images changed')
+        console.log('📊 Metadata count:', metadataList.length)
+        console.log('📝 ACTUAL METADATA BEING SENT TO AI:')
+        metadataList.forEach((metadata, index) => {
+          console.log(`Image ${index + 1}:`, metadata.substring(0, 200) + '...')
+        })
+        
+        // Set loading states
+        setIsGeneratingThesis(true)
+        setIsGeneratingInsights(true)
+        
+        // Generate all insights in parallel for speed
+        Promise.all([
+          generateFashionThesis(metadataList),
+          generateColorInsights(metadataList),
+          generateClothingPreferences(metadataList)
+        ]).then(([thesis, colorInsights, clothingPrefs]) => {
+          console.log('✅ All insights regenerated successfully based on current likes')
+          setFashionThesis(thesis)
+          setColorInsights(colorInsights)
+          setClothingPreferences(clothingPrefs)
+        }).catch(error => {
+          console.error('❌ Error generating insights:', error)
+          // Set fallback content on error
+          setFashionThesis('Unable to generate fashion thesis at this time.')
+          setColorInsights('Unable to analyze color preferences at this time.')
+          setClothingPreferences('Unable to analyze style preferences at this time.')
+        }).finally(() => {
+          // Clear loading states
+          setIsGeneratingInsights(false)
+          setIsGeneratingThesis(false)
+        })
+      }, 1000) // 1 second delay
       
-      // Set loading states
-      setIsGeneratingThesis(true)
-      setIsGeneratingInsights(true)
-      
-      // Generate all insights in parallel for speed
-      Promise.all([
-        generateFashionThesis(metadataList),
-        generateColorInsights(metadataList),
-        generateClothingPreferences(metadataList)
-      ]).then(([thesis, colorInsights, clothingPrefs]) => {
-        console.log('✅ All insights regenerated successfully based on current likes')
-        setFashionThesis(thesis)
-        setColorInsights(colorInsights)
-        setClothingPreferences(clothingPrefs)
-      }).catch(error => {
-        console.error('❌ Error generating insights:', error)
-        // Set fallback content on error
-        setFashionThesis('Unable to generate fashion thesis at this time.')
-        setColorInsights('Unable to analyze color preferences at this time.')
-        setClothingPreferences('Unable to analyze style preferences at this time.')
-      }).finally(() => {
-        // Clear loading states
-        setIsGeneratingInsights(false)
-        setIsGeneratingThesis(false)
-      })
+      // Cleanup timeout if component unmounts or effect runs again
+      return () => clearTimeout(timeoutId)
     }
-  }, [activeTab, likedImages, generateClothingPreferences])
+  }, [activeTab, likedImages.length, generateClothingPreferences])
 
   // Generate outfit implementation blurb
   const generateOutfitBlurb = async (metadata: string, index: number) => {
@@ -548,30 +557,30 @@ function App() {
       const outfitNumber = filename.match(/\d+/)?.[0] || '';
       metadata += `Pinterest fashion inspiration #${outfitNumber}. `;
       
-      // Add specific details based on outfit number patterns
+      // Add specific details based on outfit number patterns - focus on tops and pants, avoid dresses unless specifically shown
       if (['001', '002', '003'].includes(outfitNumber)) {
-        metadata += `Features blazers, fitted tops, high-waisted trousers, structured dresses, and tailored jackets. Includes classic accessories like gold jewelry, leather bags, and pointed-toe shoes. Color palette: neutral tones, earth colors, classic blacks/navys.`;
+        metadata += `Features fitted tops, blazers, high-waisted trousers, and tailored jackets. Includes classic accessories like gold jewelry, leather bags, and pointed-toe shoes. Color palette: neutral tones, earth colors, classic blacks/navys.`;
       } else if (['004', '005', '006'].includes(outfitNumber)) {
-        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, midi skirts, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases.`;
+        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases.`;
       } else if (['007', '008', '009'].includes(outfitNumber)) {
-        metadata += `Displays silk blouses, tailored pants, fitted dresses, structured skirts, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones.`;
+        metadata += `Displays silk blouses, tailored pants, structured jackets, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones.`;
       } else if (['010', '011', '012'].includes(outfitNumber)) {
-        metadata += `Presents fitted tops, straight-leg jeans, minimalist dresses, clean-lined skirts, and simple coats. Includes subtle accessories like thin jewelry, neutral bags, and clean sneakers. Color scheme: monochromatic and neutral tones.`;
+        metadata += `Presents fitted tops, straight-leg jeans, clean-lined skirts, and simple coats. Includes subtle accessories like thin jewelry, neutral bags, and clean sneakers. Color scheme: monochromatic and neutral tones.`;
       } else if (['014', '015'].includes(outfitNumber)) {
-        metadata += `Features unique tops, creative skirts, artistic dresses, statement pants, and bold outerwear. Includes creative accessories like mixed jewelry, artistic bags, and distinctive shoes. Color scheme: bold combinations and artistic palettes.`;
+        metadata += `Features unique tops, creative skirts, statement pants, and bold outerwear. Includes creative accessories like mixed jewelry, artistic bags, and distinctive shoes. Color scheme: bold combinations and artistic palettes.`;
       }
     } else if (filename.includes('screenshot')) {
       // Screenshot images - create detailed descriptions
       const screenshotNumber = filename.match(/\d+/)?.[0] || '';
       metadata += `Screenshot #${screenshotNumber} showing fashion content. `;
       
-      // Add specific details based on screenshot patterns
+      // Add specific details based on screenshot patterns - focus on tops and pants
       if (['1', '2', '3', '4', '5'].includes(screenshotNumber)) {
-        metadata += `Displays fitted tops, high-waisted pants, midi dresses, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Style: contemporary trends with versatile pieces.`;
+        metadata += `Displays fitted tops, high-waisted pants, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Style: contemporary trends with versatile pieces.`;
       } else if (['6', '7', '8', '9', '10'].includes(screenshotNumber)) {
-        metadata += `Shows tailored blazers, fitted dresses, straight-leg pants, structured tops, and elegant skirts. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Style: sophisticated and refined aesthetics.`;
+        metadata += `Shows tailored blazers, fitted tops, straight-leg pants, and structured jackets. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Style: sophisticated and refined aesthetics.`;
       } else if (['11', '12', '13', '14', '15'].includes(screenshotNumber)) {
-        metadata += `Presents creative tops, artistic dresses, unique pants, statement jackets, and bold skirts. Includes artistic accessories like mixed jewelry, creative bags, and distinctive shoes. Style: innovative and artistic expression.`;
+        metadata += `Presents creative tops, unique pants, statement jackets, and bold skirts. Includes artistic accessories like mixed jewelry, creative bags, and distinctive shoes. Style: innovative and artistic expression.`;
       }
     } else if (filename.match(/^[a-f0-9]{32}\.jpg$/)) {
       // New fashion images with hash filenames - provide detailed, varied descriptions
@@ -579,15 +588,15 @@ function App() {
       const hashNumber = parseInt(imageHash.slice(-2), 16) % 10; // Use last 2 chars to create variety
       
       if (hashNumber <= 3) {
-        metadata += `Features fitted tops, high-waisted pants, midi dresses, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Color palette: neutral tones, earth colors, classic blacks/navys. Style: contemporary and versatile.`;
+        metadata += `Features fitted tops, high-waisted pants, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Color palette: neutral tones, earth colors, classic blacks/navys. Style: contemporary and versatile.`;
       } else if (hashNumber <= 6) {
-        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, midi skirts, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases. Style: relaxed and bold.`;
+        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases. Style: relaxed and bold.`;
       } else {
-        metadata += `Displays silk blouses, tailored pants, fitted dresses, structured skirts, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones. Style: elegant and refined.`;
+        metadata += `Displays silk blouses, tailored pants, structured jackets, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones. Style: elegant and refined.`;
       }
     } else {
-      // Generic images
-      metadata += `Fashion inspiration image featuring fitted tops, versatile pants, stylish dresses, and contemporary outerwear. Includes modern accessories like statement jewelry, trendy bags, and fashionable shoes. Style: contemporary and versatile.`;
+      // Generic images - focus on tops and pants, avoid dresses
+      metadata += `Fashion inspiration image featuring fitted tops, versatile pants, and contemporary outerwear. Includes modern accessories like statement jewelry, trendy bags, and fashionable shoes. Style: contemporary and versatile.`;
     }
     
     // Add universal style characteristics with more specific details
