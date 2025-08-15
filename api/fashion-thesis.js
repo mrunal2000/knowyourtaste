@@ -36,11 +36,11 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: "You are a fashion expert who gives simple, direct advice. Use plain, everyday language. No fancy words, no flowery descriptions, no verbose language. Write like you're talking to a friend - simple and clear."
+          content: "You are a fashion expert who describes what people like in simple, direct language. Write in second person ('you like...', 'you prefer...'). Use plain, everyday words. No fancy descriptions, no flowery language."
         },
         {
           role: "user",
-          content: `Based on these outfit analyses: "${combinedContext}", write a simple fashion summary in exactly 3 short sentences. Use plain, everyday words. Say: 1) What style you like (simple words), 2) What clothes you prefer, 3) One tip. NO fancy language, NO long sentences, NO decorative words.`
+          content: `Based on these outfit analyses: "${combinedContext}", write a simple fashion summary in exactly 3 short sentences. Use plain words and write like: 'You like [style]. You prefer [clothing items]. [One simple tip].' Keep it direct and personal. NO fancy language, NO long sentences.`
         }
       ],
       max_tokens: 100
