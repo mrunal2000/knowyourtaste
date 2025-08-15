@@ -71,7 +71,7 @@ function App() {
   const [draggedBox, setDraggedBox] = useState<string | null>(null);
   
   // Flag to ensure insights are only generated once per session
-  const [insightsGenerated, setInsightsGenerated] = useState<boolean>(false);
+
 
   // Handle window resize to keep boxes within bounds
   useEffect(() => {
@@ -367,17 +367,22 @@ function App() {
     saveToLocalStorage(STORAGE_KEYS.ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
-  // Generate insights only when visiting "Your Wall" page - ONCE ONLY
+  // Generate insights whenever liked images change and we're on "Your Wall" page
   useEffect(() => {
-    // Only generate if we're on "Your Wall" page, have enough liked images, NO insights exist yet, and we haven't generated this session
-    if (activeTab === 'your wall' && likedImages.length >= 3 && !fashionThesis && !colorInsights && !clothingPreferences && !insightsGenerated) {
+    // Clear insights if we don't have enough liked images
+    if (likedImages.length < 3) {
+      setFashionThesis('')
+      setColorInsights('')
+      setClothingPreferences('')
+      return
+    }
+    
+    // Only generate if we're on "Your Wall" page and have enough liked images
+    if (activeTab === 'your wall' && likedImages.length >= 3) {
       const metadataList = likedImages.map(item => item.metadata)
-      console.log('🚀 GENERATING INSIGHTS: First time visit to Your Wall page')
+      console.log('🚀 REGENERATING INSIGHTS: Liked images changed')
       console.log('📊 Metadata count:', metadataList.length)
-      console.log('💡 This will only happen ONCE per session')
-      
-      // Mark that we're generating insights this session
-      setInsightsGenerated(true)
+      console.log('💡 This will happen every time you like/dislike images')
       
       // Set loading states
       setIsGeneratingThesis(true)
@@ -389,7 +394,7 @@ function App() {
         generateColorInsights(metadataList),
         generateClothingPreferences(metadataList)
       ]).then(([thesis, colorInsights, clothingPrefs]) => {
-        console.log('✅ All insights generated successfully - NO MORE API CALLS')
+        console.log('✅ All insights regenerated successfully based on current likes')
         setFashionThesis(thesis)
         setColorInsights(colorInsights)
         setClothingPreferences(clothingPrefs)
@@ -404,12 +409,8 @@ function App() {
         setIsGeneratingInsights(false)
         setIsGeneratingThesis(false)
       })
-    } else if (activeTab === 'your wall' && insightsGenerated) {
-      console.log('🔄 Insights already generated this session - NO API CALLS')
-    } else if (activeTab === 'your wall' && (fashionThesis || colorInsights || clothingPreferences)) {
-      console.log('📋 Insights already exist - NO API CALLS')
     }
-  }, [activeTab, likedImages.length, fashionThesis, colorInsights, clothingPreferences, insightsGenerated])
+  }, [activeTab, likedImages, generateClothingPreferences])
 
   // Generate outfit implementation blurb
   const generateOutfitBlurb = async (metadata: string, index: number) => {
@@ -645,7 +646,7 @@ function App() {
     setCurrentImageIndex(0);
     setSelectedImageBlurb('');
     setClickedImageIndex(null);
-    setInsightsGenerated(false); // Allow insights to be generated again
+    
     // Clear local storage
     localStorage.removeItem('fashion-taster-liked-images');
     localStorage.removeItem('fashion-taster-current-image-index');
