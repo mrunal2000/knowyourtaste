@@ -39,7 +39,14 @@ function App() {
   const [showSplash, setShowSplash] = useState(true)
 
   const [activeTab, setActiveTab] = useState(() => loadFromLocalStorage(STORAGE_KEYS.ACTIVE_TAB, 'play'))
-  const [currentImageIndex, setCurrentImageIndex] = useState(() => loadFromLocalStorage(STORAGE_KEYS.CURRENT_IMAGE_INDEX, 0))
+  const [currentImageIndex, setCurrentImageIndex] = useState(() => {
+    const savedIndex = loadFromLocalStorage(STORAGE_KEYS.CURRENT_IMAGE_INDEX, null);
+    // If no saved index, start from a random image for variety (59 total images)
+    if (savedIndex === null) {
+      return Math.floor(Math.random() * 59);
+    }
+    return savedIndex;
+  })
   const [likedImages, setLikedImages] = useState<ImageWithMetadata[]>(() => {
     const saved = loadFromLocalStorage(STORAGE_KEYS.LIKED_IMAGES, []);
     // Convert timestamp strings back to Date objects
@@ -647,12 +654,15 @@ function App() {
     }, 300);
   }
 
+
+
   const handleResetAll = () => {
     setLikedImages([]);
     setFashionThesis('');
     setColorInsights('');
     setClothingPreferences('');
-    setCurrentImageIndex(0);
+    // Start from a random image instead of always starting from 0
+    setCurrentImageIndex(Math.floor(Math.random() * 59));
     setSelectedImageBlurb('');
     setClickedImageIndex(null);
     

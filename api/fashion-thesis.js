@@ -35,11 +35,15 @@ export default async function handler(req, res) {
       model: "gpt-4o",
       messages: [
         {
+          role: "system",
+          content: "You are a fashion expert who gives simple, direct advice. Use plain, everyday language. No fancy words, no flowery descriptions, no verbose language. Write like you're talking to a friend - simple and clear."
+        },
+        {
           role: "user",
-          content: `Based on these outfit analyses: "${combinedContext}", generate a short and actionable fashion thesis (maximum 8 lines) that summarizes the user's style preferences and gives them actionable insights. Focus on: 1) Key style patterns, 2) Color preferences, 3) Specific actionable tips, 4) Style evolution suggestions. Keep it concise, inspiring, and practical.`
+          content: `Based on these outfit analyses: "${combinedContext}", write a simple fashion summary in exactly 3 short sentences. Use plain, everyday words. Say: 1) What style you like (simple words), 2) What clothes you prefer, 3) One tip. NO fancy language, NO long sentences, NO decorative words.`
         }
       ],
-      max_tokens: 300
+      max_tokens: 100
     });
 
     const thesis = response.choices[0].message.content;
