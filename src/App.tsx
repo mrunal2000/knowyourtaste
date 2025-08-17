@@ -80,6 +80,10 @@ function App() {
   // Flag to ensure insights are only generated once per session
 
 
+
+
+
+
   // Handle window resize to keep boxes within bounds
   useEffect(() => {
     const handleResize = () => {
@@ -237,6 +241,9 @@ function App() {
   const generateFashionThesis = async (metadataList: string[]) => {
     setIsGeneratingThesis(true)
     console.log('Generating thesis with metadata:', metadataList)
+    
+    const requestData = { metadata: metadataList };
+    
     try {
       // Use localhost for local testing, production API for deployed app
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -249,19 +256,24 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          metadata: metadataList,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Fashion thesis API error response:', errorText);
-        throw new Error(`Failed to generate fashion thesis: ${response.status} - ${errorText}`);
+        const error = `Failed to generate fashion thesis: ${response.status} - ${errorText}`;
+        
+        // Log failed API call
+
+        throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Fashion thesis API response:', data);
+      
+      // Log successful API call
+      
       
       return data.thesis;
     } catch (error) {
@@ -276,6 +288,9 @@ function App() {
   const generateColorInsights = async (metadataList: string[]) => {
     setIsGeneratingInsights(true)
     console.log('Generating color insights with metadata:', metadataList)
+    
+    const requestData = { metadata: metadataList };
+    
     try {
       // Use localhost for local testing, production API for deployed app
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -288,19 +303,24 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          metadata: metadataList,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Color insights API error response:', errorText);
-        throw new Error(`Failed to generate color insights: ${response.status} - ${errorText}`);
+        const error = `Failed to generate color insights: ${response.status} - ${errorText}`;
+        
+        // Log failed API call
+
+        throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Color insights API response:', data);
+      
+      // Log successful API call
+      
       
       return data.insights;
     } catch (error) {
@@ -315,6 +335,9 @@ function App() {
   const generateClothingPreferences = useCallback(async (metadataList: string[]) => {
     setIsGeneratingInsights(true)
     console.log('Generating clothing preferences with metadata:', metadataList)
+    
+    const requestData = { metadata: metadataList };
+    
     try {
       // Use localhost for local testing, production API for deployed app
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -327,19 +350,22 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          metadata: metadataList,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Clothing preferences API error response:', errorText);
-        throw new Error(`Failed to generate clothing preferences: ${response.status} - ${errorText}`);
+        const error = `Failed to generate clothing preferences: ${response.status} - ${errorText}`;
+        
+        // Log failed API call
+        throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Clothing preferences API response:', data);
+      
+              // Log successful API call
       
       return data.preferences;
     } catch (error) {
@@ -410,6 +436,8 @@ function App() {
           setFashionThesis(thesis)
           setColorInsights(colorInsights)
           setClothingPreferences(clothingPrefs)
+          
+          // Log AI insights for analysis
         }).catch(error => {
           console.error('❌ Error generating insights:', error)
           // Set fallback content on error
@@ -435,6 +463,8 @@ function App() {
       setIsGeneratingBlurb(true);
       setClickedImageIndex(index);
       
+      const requestData = { metadata: metadata };
+      
       // Use localhost for local testing, production API for deployed app
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocalhost ? 'http://localhost:3002/api/outfit-tips' : '/api/outfit-tips';
@@ -446,19 +476,22 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          metadata: metadata,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Outfit tips API error response:', errorText);
-        throw new Error(`Failed to generate outfit tips: ${response.status} - ${errorText}`);
+        const error = `Failed to generate outfit tips: ${response.status} - ${errorText}`;
+        
+        // Log failed API call
+        throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Outfit tips API response:', data);
+      
+              // Log successful API call
       
       setSelectedImageBlurb(data.tips);
     } catch (error) {
@@ -474,6 +507,8 @@ function App() {
     try {
       console.log('Generating like message for metadata:', metadata);
       
+      const requestData = { metadata: metadata };
+      
       // Use localhost for local testing, production API for deployed app
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocalhost ? 'http://localhost:3002/api/like-message' : '/api/like-message';
@@ -485,19 +520,24 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          metadata: metadata,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Like message API error response:', errorText);
-        throw new Error(`Failed to generate like message: ${response.status} - ${errorText}`);
+        const error = `Failed to generate like message: ${response.status} - ${errorText}`;
+        
+        // Log failed API call
+        logApiCall('like-message', requestData, null, false, error);
+        throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Like message API response:', data);
+      
+      // Log successful API call
+      logApiCall('like-message', requestData, data, true);
       
       return data.message;
     } catch (error) {
@@ -552,99 +592,114 @@ function App() {
     setDraggedBox(null);
   };
 
-  // Generate detailed metadata for an image based on its filename and content
-  const generateDetailedMetadata = (imagePath: string, imageIndex: number): string => {
+  // Generate detailed metadata for an image using GPT Vision analysis
+  const generateDetailedMetadata = async (imagePath: string, imageIndex: number): Promise<string> => {
     const filename = imagePath.split('/').pop() || '';
     
-    // Create detailed metadata based on image characteristics
-    let metadata = `Outfit ${imageIndex + 1}: `;
-    
-    if (filename.includes('pinterest_outfit')) {
-      // Pinterest outfit images - create detailed descriptions
-      const outfitNumber = filename.match(/\d+/)?.[0] || '';
-      metadata += `Pinterest fashion inspiration #${outfitNumber}. `;
+    try {
+      // Convert image to base64 for GPT Vision API
+      const response = await fetch(imagePath);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/analyze-image' : '/api/analyze-image';
       
-      // Add specific details based on outfit number patterns - focus on tops and pants, avoid dresses unless specifically shown
-      if (['001', '002', '003'].includes(outfitNumber)) {
-        metadata += `Features fitted tops, blazers, high-waisted trousers, and tailored jackets. Includes classic accessories like gold jewelry, leather bags, and pointed-toe shoes. Color palette: neutral tones, earth colors, classic blacks/navys.`;
-      } else if (['004', '005', '006'].includes(outfitNumber)) {
-        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases.`;
-      } else if (['007', '008', '009'].includes(outfitNumber)) {
-        metadata += `Displays silk blouses, tailored pants, structured jackets, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones.`;
-      } else if (['010', '011', '012'].includes(outfitNumber)) {
-        metadata += `Presents fitted tops, straight-leg jeans, clean-lined skirts, and simple coats. Includes subtle accessories like thin jewelry, neutral bags, and clean sneakers. Color scheme: monochromatic and neutral tones.`;
-      } else if (['014', '015'].includes(outfitNumber)) {
-        metadata += `Features unique tops, creative skirts, statement pants, and bold outerwear. Includes creative accessories like mixed jewelry, artistic bags, and distinctive shoes. Color scheme: bold combinations and artistic palettes.`;
-      }
-    } else if (filename.includes('screenshot')) {
-      // Screenshot images - create detailed descriptions
-      const screenshotNumber = filename.match(/\d+/)?.[0] || '';
-      metadata += `Screenshot #${screenshotNumber} showing fashion content. `;
+      console.log('🔍 Analyzing image with GPT Vision:', filename);
       
-      // Add specific details based on screenshot patterns - focus on tops and pants
-      if (['1', '2', '3', '4', '5'].includes(screenshotNumber)) {
-        metadata += `Displays fitted tops, high-waisted pants, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Style: contemporary trends with versatile pieces.`;
-      } else if (['6', '7', '8', '9', '10'].includes(screenshotNumber)) {
-        metadata += `Shows tailored blazers, fitted tops, straight-leg pants, and structured jackets. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Style: sophisticated and refined aesthetics.`;
-      } else if (['11', '12', '13', '14', '15'].includes(screenshotNumber)) {
-        metadata += `Presents creative tops, unique pants, statement jackets, and bold skirts. Includes artistic accessories like mixed jewelry, creative bags, and distinctive shoes. Style: innovative and artistic expression.`;
+      const visionResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: base64,
+          filename: filename,
+          imageIndex: imageIndex
+        }),
+      });
+
+      if (!visionResponse.ok) {
+        throw new Error(`Vision API failed: ${visionResponse.status}`);
       }
-    } else if (filename.match(/^[a-f0-9]{32}\.jpg$/)) {
-      // New fashion images with hash filenames - provide detailed, varied descriptions
-      const imageHash = filename.split('.')[0];
-      const hashNumber = parseInt(imageHash.slice(-2), 16) % 10; // Use last 2 chars to create variety
+
+      const visionData = await visionResponse.json();
+      console.log('✅ GPT Vision analysis result:', visionData);
       
-      if (hashNumber <= 3) {
-        metadata += `Features fitted tops, high-waisted pants, structured jackets, and versatile skirts. Includes classic accessories like gold jewelry, leather bags, and ankle boots. Color palette: neutral tones, earth colors, classic blacks/navys. Style: contemporary and versatile.`;
-      } else if (hashNumber <= 6) {
-        metadata += `Shows oversized sweaters, loose tops, high-waisted jeans, and statement coats. Includes bold accessories like chunky jewelry, statement bags, and chunky sneakers. Color scheme: vibrant accents with neutral bases. Style: relaxed and bold.`;
-      } else {
-        metadata += `Displays silk blouses, tailored pants, structured jackets, and elegant coats. Includes refined accessories like delicate jewelry, structured bags, and heeled shoes. Color scheme: sophisticated neutrals and rich tones. Style: elegant and refined.`;
-      }
-    } else {
-      // Generic images - focus on tops and pants, avoid dresses
-      metadata += `Fashion inspiration image featuring fitted tops, versatile pants, and contemporary outerwear. Includes modern accessories like statement jewelry, trendy bags, and fashionable shoes. Style: contemporary and versatile.`;
+      // Log the API call for analysis
+      logApiCall('analyze-image', { filename, imageIndex }, visionData, true);
+      
+      return visionData.metadata;
+      
+    } catch (error) {
+      console.error('❌ Error analyzing image with GPT Vision:', error);
+      
+      // Fallback to basic description if vision analysis fails
+      const fallbackMetadata = `Outfit ${imageIndex + 1}: Fashion inspiration image ${filename}. Style: contemporary and versatile.`;
+      
+      // Log the failed API call
+      logApiCall('analyze-image', { filename, imageIndex }, null, false, error instanceof Error ? error.message : String(error));
+      
+      return fallbackMetadata;
     }
-    
-    // Add universal style characteristics with more specific details
-    metadata += ` The outfit demonstrates attention to detail and personal expression through specific clothing choices. Style elements include consideration of fit, fabric quality, color harmony, and accessory coordination. The ensemble features a mix of classic and contemporary pieces with attention to seasonal appropriateness.`;
-    
-    return metadata;
   };
 
-  const handleLikeClick = async () => {
-    // Add current image with metadata to liked images
+  const handleLikeClick = () => {
+    // Add current image immediately to liked images
     const currentImage = images[currentImageIndex]
     
-    // Generate detailed metadata for better AI analysis
-    const detailedMetadata = generateDetailedMetadata(currentImage, currentImageIndex);
-    
-    // Generate personalized like message first
-    let likeMessage = '';
-    try {
-      likeMessage = await generateLikeMessage(detailedMetadata);
-    } catch (error) {
-      console.error('Failed to generate like message:', error);
-      likeMessage = 'You seem to like this outfit!';
-    }
-    
-    const newImageWithMetadata: ImageWithMetadata = {
+    // Create a temporary entry with basic info
+    const tempImageWithMetadata: ImageWithMetadata = {
       image: currentImage,
-      metadata: detailedMetadata,
+      metadata: `Outfit ${currentImageIndex + 1}: Fashion inspiration image. Style: contemporary and versatile.`,
       timestamp: new Date(),
-      likeMessage: likeMessage
+      likeMessage: 'You seem to like this outfit!'
     }
     
     // Check if image already exists
     const exists = likedImages.some(item => item.image === currentImage)
     if (!exists) {
-      setLikedImages([...likedImages, newImageWithMetadata])
+      setLikedImages([...likedImages, tempImageWithMetadata])
     }
 
     // Move to next image quickly
     setTimeout(() => {
       setCurrentImageIndex((prev: number) => (prev + 1) % images.length);
     }, 300);
+    
+    // Run detailed analysis in the background (non-blocking)
+    generateDetailedMetadata(currentImage, currentImageIndex).then(detailedMetadata => {
+      console.log(`📸 Generated metadata for image ${currentImageIndex + 1}:`, detailedMetadata);
+      
+      // Update the image with detailed metadata
+      setLikedImages(prev => prev.map(item => 
+        item.image === currentImage 
+          ? { ...item, metadata: detailedMetadata }
+          : item
+      ));
+      
+      // Generate personalized like message in background
+      generateLikeMessage(detailedMetadata).then(likeMessage => {
+        // Update the image with the like message
+        setLikedImages(prev => prev.map(item => 
+          item.image === currentImage 
+            ? { ...item, likeMessage }
+            : item
+        ));
+      }).catch(error => {
+        console.error('Failed to generate like message:', error);
+      });
+    }).catch(error => {
+      console.error('Failed to generate detailed metadata:', error);
+    });
   }
 
   const handleNoLikeClick = () => {
@@ -665,6 +720,8 @@ function App() {
     setCurrentImageIndex(Math.floor(Math.random() * 59));
     setSelectedImageBlurb('');
     setClickedImageIndex(null);
+    
+
     
     // Clear local storage
     localStorage.removeItem('fashion-taster-liked-images');
@@ -794,6 +851,8 @@ function App() {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
+
+
       {/* Container for draggable insight boxes */}
       <div className="insights-container">
         {/* Color Insights Box - Always Visible */}

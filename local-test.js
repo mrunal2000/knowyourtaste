@@ -377,6 +377,99 @@ Here are the outfit metadata to analyze: "${combinedContext}"`
   }
 });
 
+// OpenAI analyze-image endpoint (GPT Vision)
+app.post('/api/analyze-image', async (req, res) => {
+  try {
+    const { image, filename, imageIndex } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ error: 'Image data is required' });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        details: 'Please set OPENAI_API_KEY environment variable'
+      });
+    }
+
+    console.log(`🔍 Analyzing image ${imageIndex + 1}: ${filename}`);
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
+    // Use GPT Vision to analyze the fashion image
+    const visionResponse = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a fashion expert who analyzes outfit images and provides detailed, accurate descriptions. Focus on:
+
+1. **Clothing Items**: Be specific about tops, bottoms (pants/skirts), outerwear, dresses
+2. **Fit & Silhouette**: Describe the fit (fitted, loose, oversized) and silhouette
+3. **Colors**: Identify the main colors and color scheme - be specific about color names and combinations
+4. **Accessories**: Note jewelry, bags, shoes, belts, etc.
+5. **Style**: Describe the overall aesthetic (casual, formal, trendy, classic, etc.)
+6. **Details**: Fabric textures, patterns, layering, proportions
+
+IMPORTANT COLOR ANALYSIS RULES:
+- ONLY analyze colors from CLOTHING and ACCESSORIES (tops, bottoms, outerwear, shoes, bags, jewelry)
+- IGNORE background colors, wall colors, floor colors, or any environmental elements
+- Focus on the actual outfit colors: fabric colors, accessory colors, shoe colors
+- Be specific about color names (e.g., "navy blue", "cream", "gold", "black", "white", "denim blue")
+- If you see a white shirt, blue jeans, and gold belt - only mention white, blue, and gold
+
+Be precise and avoid generic descriptions. If you see pants, say pants. If you see a skirt, say skirt.`
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Analyze this fashion outfit image and provide a detailed description. Focus on what you actually see in the image. Be specific about clothing items, colors, accessories, and style.
+
+CRITICAL: When analyzing colors, ONLY look at the clothing and accessories. Ignore any background colors, wall colors, or environmental elements. Only describe colors from the actual outfit pieces.`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${image}`,
+                detail: "high"
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 300,
+      temperature: 0.3
+    });
+
+    const analysis = visionResponse.choices[0].message.content;
+    
+    // Format the metadata with the outfit number
+    const metadata = `Outfit ${imageIndex + 1}: ${analysis}`;
+
+    console.log(`✅ Generated metadata for ${filename}:`, metadata.substring(0, 100) + '...');
+
+    res.status(200).json({
+      metadata: metadata,
+      analysis: analysis,
+      filename: filename,
+      imageIndex: imageIndex
+    });
+
+  } catch (error) {
+    console.error('❌ Error analyzing image with GPT Vision:', error);
+    
+    res.status(500).json({
+      error: 'Failed to analyze image',
+      details: error.message
+    });
+  }
+});
+
 // OpenAI clothing-preferences endpoint
 app.post('/api/clothing-preferences', async (req, res) => {
   try {
