@@ -529,15 +529,13 @@ function App() {
         const error = `Failed to generate like message: ${response.status} - ${errorText}`;
         
         // Log failed API call
-        logApiCall('like-message', requestData, null, false, error);
         throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Like message API response:', data);
       
-      // Log successful API call
-      logApiCall('like-message', requestData, data, true);
+              // Log successful API call
       
       return data.message;
     } catch (error) {
@@ -635,7 +633,6 @@ function App() {
       console.log('✅ GPT Vision analysis result:', visionData);
       
       // Log the API call for analysis
-      logApiCall('analyze-image', { filename, imageIndex }, visionData, true);
       
       return visionData.metadata;
       
@@ -646,7 +643,6 @@ function App() {
       const fallbackMetadata = `Outfit ${imageIndex + 1}: Fashion inspiration image ${filename}. Style: contemporary and versatile.`;
       
       // Log the failed API call
-      logApiCall('analyze-image', { filename, imageIndex }, null, false, error instanceof Error ? error.message : String(error));
       
       return fallbackMetadata;
     }
