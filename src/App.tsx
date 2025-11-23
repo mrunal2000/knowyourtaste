@@ -41,9 +41,9 @@ function App() {
   const [activeTab, setActiveTab] = useState(() => loadFromLocalStorage(STORAGE_KEYS.ACTIVE_TAB, 'play'))
   const [currentImageIndex, setCurrentImageIndex] = useState(() => {
     const savedIndex = loadFromLocalStorage(STORAGE_KEYS.CURRENT_IMAGE_INDEX, null);
-    // If no saved index, start from a random image for variety (59 total images)
+    // If no saved index, start from a random image for variety (44 total images)
     if (savedIndex === null) {
-      return Math.floor(Math.random() * 59);
+      return Math.floor(Math.random() * 44);
     }
     return savedIndex;
   })
@@ -195,11 +195,9 @@ function App() {
     '/cropped/cropped_1d0a99081666f4a119e115f1644479f9.jpg',
     '/cropped/cropped_1dbcb9365ffd38733a59a6ef8103d271.jpg',
     '/cropped/cropped_1e40320294fd6befef0d50b179b49e98.jpg',
-    '/cropped/cropped_220d562e59828a8c2870c43548d2f6f.jpg',
+    '/cropped/cropped_220d562e59828a8c287c0c43548d2f6f.jpg',
     '/cropped/cropped_29cefb0ef7853ed6c6faa68364506b53.jpg',
     '/cropped/cropped_2ce6c8460cdf4109769217e32120ec02.jpg',
-    '/cropped/cropped_30d2fe0d9e859c6aac4abdbec48f8b1c.jpg',
-    '/cropped/cropped_47f877955eec8b5b96afedb1889a56ff.jpg',
     '/cropped/cropped_505dd70ccb4338f90f1790ed46c85c1c.jpg',
     '/cropped/cropped_54e5c226dfcb149d97e1354117034d76.jpg',
     '/cropped/cropped_64fc81cd38149c3a306c029b16d31df7.jpg',
@@ -209,19 +207,14 @@ function App() {
     '/cropped/cropped_719846b78e4fedce59debefd0604f24b.jpg',
     '/cropped/cropped_7bddea1debd393d9899de0f8ea938e2e.jpg',
     '/cropped/cropped_7e9f1f25c227816118998980f7e389b6.jpg',
-    '/cropped/cropped_8d1a1b38b296f3a5735c21f1192d8295.jpg',
     '/cropped/cropped_93679253d5198ad65a50a9550aeb5a7b.jpg',
-    '/cropped/cropped_9788e5417c2811c385ec99cde6146e06.jpg',
     '/cropped/cropped_9b6d2c71d04348b01850d493846938cd.jpg',
     '/cropped/cropped_a089c0a3a37f6127470f93692ce63a72.jpg',
-    '/cropped/cropped_bc7b0d0d52a66d8f801aa3ed2d59dad5.jpg',
     '/cropped/cropped_ce069b6cdfbbe8fe2310f02932530b74.jpg',
     '/cropped/cropped_d273d88018015f4662e590ba66729f13.jpg',
-    '/cropped/cropped_dc600dc551029b6fb111fac2a69be4db.jpg',
-    '/cropped/cropped_dcb4f112f4d9dcc0eaa94478a5e627c.jpg',
+    '/cropped/cropped_dcb4f1122f4d9dcc0eaa94478a5e627c.jpg',
     '/cropped/cropped_ed7e44cd1ccf31b36c1eea4a7e85963a.jpg',
-    '/cropped/cropped_f4ec203b865bf79311ad67ed441d53cc.jpg',
-    '/cropped/cropped_ff5e20358374067b9207ec6e278d8f28.jpg',
+    '/cropped/cropped_ff5e20358374067b9207ec6e278d8c28.jpg',
     // Original screenshots (secondary collection) - cropped versions
     '/cropped/cropped_screenshot.png',
     '/cropped/cropped_screenshot1.png',
@@ -237,18 +230,12 @@ function App() {
     '/cropped/cropped_screenshot11.jpg',
     '/cropped/cropped_screenshot12.jpg',
     '/cropped/cropped_screenshot13.jpg',
-    '/cropped/cropped_screenshot14.jpg',
-    '/cropped/cropped_screenshot15.jpg',
     // Pinterest fashion outfit inspiration (tertiary collection) - cropped versions
-    '/cropped/cropped_pinterest_outfit_001.jpg',
     '/cropped/cropped_pinterest_outfit_002.jpg',
     '/cropped/cropped_pinterest_outfit_004.jpg',
     '/cropped/cropped_pinterest_outfit_005.jpg',
     '/cropped/cropped_pinterest_outfit_006.jpg',
     '/cropped/cropped_pinterest_outfit_009.jpg',
-    '/cropped/cropped_pinterest_outfit_011.jpg',
-    '/cropped/cropped_pinterest_outfit_012.jpg',
-    '/cropped/cropped_pinterest_outfit_014.jpg',
     '/cropped/cropped_pinterest_outfit_015.jpg'
   ]
 
