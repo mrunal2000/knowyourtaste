@@ -1374,7 +1374,7 @@ body {
     right: 8px;
     width: calc(100% - 24px); /* Account for padding and right offset */
     max-width: 280px;
-    max-height: calc(100% - 60px);
+    max-height: calc(100% -10px);
   }
   
   .outfit-blurb .recreation-tips {
@@ -1387,6 +1387,10 @@ body {
   
   .outfit-blurb .recreation-tips li {
     margin-bottom: 10px;
+  }
+
+  .outfit-blurb .recreation-tips {
+    text-align: left;
   }
 }
 
