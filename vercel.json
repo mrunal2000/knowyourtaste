@@ -11,6 +11,12 @@
     },
     "api/fashion-thesis.js": {
       "maxDuration": 15
+    },
+    "api/clothing-preferences.js": {
+      "maxDuration": 15
+    },
+    "api/color-insights.js": {
+      "maxDuration": 15
     }
   }
 }

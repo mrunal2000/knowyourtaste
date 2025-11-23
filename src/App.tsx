@@ -313,8 +313,14 @@ function App() {
 
       const data = await response.json();
       console.log('Clothing preferences API response:', data);
+      console.log('Clothing preferences extracted:', data.preferences);
       
-              // Log successful API call
+      if (!data.preferences) {
+        console.error('No preferences in API response:', data);
+        return 'Your clothing style is distinctive and personal!';
+      }
+      
+      // Log successful API call
       
       return data.preferences;
     } catch (error) {
@@ -397,12 +403,15 @@ function App() {
           generateClothingPreferences(metadataList)
         ]).then(([colorInsights, clothingPrefs]) => {
           console.log('✅ All insights regenerated successfully based on current likes')
-          setColorInsights(colorInsights)
-          setClothingPreferences(clothingPrefs)
+          console.log('Color insights received:', colorInsights ? 'Yes' : 'No', colorInsights?.substring(0, 50))
+          console.log('Clothing preferences received:', clothingPrefs ? 'Yes' : 'No', clothingPrefs?.substring(0, 50))
+          setColorInsights(colorInsights || '')
+          setClothingPreferences(clothingPrefs || '')
           
           // Log AI insights for analysis
         }).catch(error => {
           console.error('❌ Error generating insights:', error)
+          console.error('Error details:', error.message, error.stack)
           // Set fallback content on error
           setColorInsights('Unable to analyze color preferences at this time.')
           setClothingPreferences('Unable to analyze style preferences at this time.')
