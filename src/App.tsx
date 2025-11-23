@@ -64,6 +64,7 @@ function App() {
   const [colorInsights, setColorInsights] = useState<string>('');
   const [clothingPreferences, setClothingPreferences] = useState<string>('');
   const [fashionThesis, setFashionThesis] = useState<string>('');
+  const [brandSuggestions, setBrandSuggestions] = useState<string>('');
   
   // Separate loading state for AI analysis (not for image transitions)
   const [isAnalyzingAI, setIsAnalyzingAI] = useState<boolean>(false);
@@ -72,7 +73,8 @@ function App() {
   const [boxPositions, setBoxPositions] = useState({
     colorInsights: { x: 40, y: 80 },
     clothingPreferences: { x: 40, y: 200 },
-    fashionThesis: { x: 40, y: 320 }
+    fashionThesis: { x: 40, y: 320 },
+    brandSuggestions: { x: 40, y: 440 }
   });
   
   // State for tracking which box is being dragged
@@ -137,6 +139,10 @@ function App() {
           fashionThesis: {
             x: Math.max(margin, Math.min(prev.fashionThesis?.x || 40, window.innerWidth - boxWidth - margin)),
             y: Math.max(margin, Math.min(prev.fashionThesis?.y || 320, window.innerHeight - boxHeight - margin))
+          },
+          brandSuggestions: {
+            x: Math.max(margin, Math.min(prev.brandSuggestions?.x || 40, window.innerWidth - boxWidth - margin)),
+            y: Math.max(margin, Math.min(prev.brandSuggestions?.y || 440, window.innerHeight - boxHeight - margin))
           }
         };
       });
@@ -422,6 +428,44 @@ function App() {
     }
   }, [])
 
+  // Generate brand suggestions using GPT API
+  const generateBrandSuggestions = useCallback(async (metadataList: string[]) => {
+    console.log('Generating brand suggestions with metadata:', metadataList)
+    
+    const requestData = { metadata: metadataList };
+    
+    try {
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/brand-suggestion' : '/api/brand-suggestion';
+      
+      console.log('Using brand-suggestion API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Brand suggestions API error response:', errorText);
+        const error = `Failed to generate brand suggestions: ${response.status} - ${errorText}`;
+        throw new Error(error);
+      }
+
+      const data = await response.json();
+      console.log('Brand suggestions API response:', data);
+      
+      return data.brands || 'Explore brands that match your style!';
+    } catch (error) {
+      console.error('Error generating brand suggestions:', error)
+      return 'Explore brands that match your style!'
+    }
+  }, [])
+
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -462,6 +506,7 @@ function App() {
       setColorInsights('')
       setClothingPreferences('')
       setFashionThesis('')
+      setBrandSuggestions('')
       return
     }
     
@@ -479,6 +524,7 @@ function App() {
           setColorInsights('')
           setClothingPreferences('')
           setFashionThesis('')
+          setBrandSuggestions('')
           return;
         }
 
@@ -497,15 +543,18 @@ function App() {
         Promise.all([
           generateColorInsights(metadataList),
           generateClothingPreferences(metadataList),
-          generateFashionThesis(metadataList)
-        ]).then(([colorInsights, clothingPrefs, thesis]) => {
+          generateFashionThesis(metadataList),
+          generateBrandSuggestions(metadataList)
+        ]).then(([colorInsights, clothingPrefs, thesis, brands]) => {
           console.log('✅ All insights regenerated successfully based on current likes')
           console.log('Color insights received:', colorInsights ? 'Yes' : 'No', colorInsights?.substring(0, 50))
           console.log('Clothing preferences received:', clothingPrefs ? 'Yes' : 'No', clothingPrefs?.substring(0, 50))
           console.log('Fashion thesis received:', thesis ? 'Yes' : 'No', thesis?.substring(0, 50))
+          console.log('Brand suggestions received:', brands ? 'Yes' : 'No', brands?.substring(0, 50))
           setColorInsights(colorInsights || '')
           setClothingPreferences(clothingPrefs || '')
           setFashionThesis(thesis || '')
+          setBrandSuggestions(brands || '')
           
           // Log AI insights for analysis
         }).catch(error => {
@@ -515,6 +564,7 @@ function App() {
           setColorInsights('Unable to analyze color preferences at this time.')
           setClothingPreferences('Unable to analyze style preferences at this time.')
           setFashionThesis('Unable to generate fashion thesis at this time.')
+          setBrandSuggestions('Unable to generate brand suggestions at this time.')
         }).finally(() => {
           // Clear AI analysis loading state
           setIsAnalyzingAI(false)
@@ -524,7 +574,7 @@ function App() {
       // Cleanup timeout if component unmounts or effect runs again
       return () => clearTimeout(timeoutId)
     }
-  }, [activeTab, likedImages.length, generateClothingPreferences, generateFashionThesis])
+  }, [activeTab, likedImages.length, generateClothingPreferences, generateFashionThesis, generateBrandSuggestions])
 
   // Generate outfit implementation blurb
   const generateOutfitBlurb = async (metadata: string, index: number) => {
@@ -790,6 +840,8 @@ function App() {
     setLikedImages([]);
     setColorInsights('');
     setClothingPreferences('');
+    setFashionThesis('');
+    setBrandSuggestions('');
     // Start from a random image instead of always starting from 0
     setCurrentImageIndex(Math.floor(Math.random() * getCurrentImageCount()));
     setSelectedImageBlurb('');
@@ -1003,6 +1055,32 @@ function App() {
           ) : fashionThesis ? (
             <div className="clothing-content">
               <p>{fashionThesis}</p>
+            </div>
+          ) : (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Waiting for your style data...
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Brand Suggestions Box - Always Visible */}
+      <div 
+        className="insight-box brand-suggestions"
+        style={getResponsivePosition('brandSuggestions')}
+        onMouseDown={(e) => handleMouseDown(e, 'brandSuggestions')}
+      >
+        <h3>Brand Suggestions</h3>
+        <div className="insight-content">
+          {isAnalyzingAI ? (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Analyzing brand suggestions...
+            </div>
+          ) : brandSuggestions ? (
+            <div className="clothing-content">
+              <p>{brandSuggestions}</p>
             </div>
           ) : (
             <div className="insight-loading">

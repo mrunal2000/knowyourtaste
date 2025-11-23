@@ -1724,6 +1724,14 @@ html {
   --z-index: 10;
 }
 
+/* Brand Suggestions specific styling */
+.brand-suggestions {
+  top: 280px;
+  left: 40px;
+  --rotation: -2deg;
+  --z-index: 10;
+}
+
 /* Responsive design for insight boxes */
 @media (max-width: 768px) {
   .insight-box {
@@ -2007,7 +2015,8 @@ html {
   /* Insight boxes - stack vertically on tablet */
   .color-insights,
   .clothing-preferences,
-  .fashion-thesis {
+  .fashion-thesis,
+  .brand-suggestions {
     position: static !important;
     transform: none !important;
     margin: 20px auto;
@@ -2164,7 +2173,8 @@ html {
   /* Insight boxes - full width on mobile */
   .color-insights,
   .clothing-preferences,
-  .fashion-thesis {
+  .fashion-thesis,
+  .brand-suggestions {
     position: static !important;
     transform: none !important;
     margin: 0 !important;

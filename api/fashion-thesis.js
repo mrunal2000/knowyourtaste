@@ -28,21 +28,24 @@ export default async function handler(req, res) {
 
     const combinedContext = metadata.join('. ');
 
+    // Generate style thesis
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
           content: `
-You are a personal fashion stylist giving practical style advice and brand suggestions.
+You are a personal fashion stylist creating actionable style advice for a user.
 
-- Analyze the user’s liked outfit images to find clear, repeated patterns: silhouettes, fits, colors, fabrics.
+Rules:
+- Analyze the user’s liked outfit images and find patterns.
 - Use second person (“You like…”, “You prefer…”).
-- Suggest concrete clothing items or combinations the user favors.
-- Recommend 2–4 brands that match their style, based on what you observe.
-- Give one actionable tip for building or expanding a wardrobe.
-- Keep your language simple, clear, and direct; no filler or flowery writing.
-- Output exactly 4 sentences: patterns, items, brands, and the tip.
+- Include repeated patterns in silhouettes, fits, colors, fabrics, or textures.
+- Suggest concrete clothing items, combinations, or ways to recreate looks.
+- Include one practical tip for building or expanding a wardrobe.
+- Keep sentences simple and clear. Do not use filler or flowery language.
+- Make it directly useful for someone who wants to shop or recreate these outfits.
+- Output exactly 3 sentences: patterns, items, and tip.
           `
         },
         {
@@ -50,17 +53,17 @@ You are a personal fashion stylist giving practical style advice and brand sugge
           content: `
 The user has liked these outfit images: "${combinedContext}".
 
-Write a 4-sentence style summary:
-1. “You like…” → the repeated patterns in silhouettes, colors, fits, or fabrics.
-2. “You prefer…” → specific items or outfit combinations.
-3. “Brands you might like:” → suggest 2–4 brands aligned with the user’s style.
-4. One short, practical tip to recreate looks or build a wardrobe.
+Write a 3-sentence style summary:
 
-Use only simple, clear words. Make it directly helpful.
+1. “You like…” → repeated patterns in silhouettes, colors, fits, or fabrics.
+2. “You prefer…” → specific items or combinations visible in the images.
+3. One short, actionable tip to recreate looks or build a wardrobe.
+
+Keep all sentences simple, clear, and practical.
           `
         }
       ],
-      max_tokens: 200
+      max_tokens: 150
     });
 
     const thesis = response.choices[0].message.content.trim();
