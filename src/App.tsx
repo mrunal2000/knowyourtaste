@@ -604,8 +604,8 @@ function App() {
     setDraggedBox(null);
   };
 
-  // Crop a piece from an image based on location percentages
-  const cropPieceFromImage = async (imagePath: string, location: {x: number, y: number, width: number, height: number}): Promise<string> => {
+  // Remove background from an image using improved algorithm
+  const removeBackground = async (imageUrl: string): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -617,20 +617,63 @@ function App() {
           return;
         }
 
-        // Convert percentages to pixel coordinates
-        const x = (location.x / 100) * img.width;
-        const y = (location.y / 100) * img.height;
-        const width = (location.width / 100) * img.width;
-        const height = (location.height / 100) * img.height;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
 
-        // Set canvas size to cropped dimensions
-        canvas.width = width;
-        canvas.height = height;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const width = canvas.width;
+        const height = canvas.height;
 
-        // Draw the cropped portion
-        ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+        // Sample corner pixels to determine background color
+        const sampleCorners = [
+          data[0], data[1], data[2], // top-left
+          data[(width - 1) * 4], data[(width - 1) * 4 + 1], data[(width - 1) * 4 + 2], // top-right
+          data[(height - 1) * width * 4], data[(height - 1) * width * 4 + 1], data[(height - 1) * width * 4 + 2], // bottom-left
+          data[((height - 1) * width + width - 1) * 4], data[((height - 1) * width + width - 1) * 4 + 1], data[((height - 1) * width + width - 1) * 4 + 2] // bottom-right
+        ];
 
-        // Convert to blob URL
+        // Calculate average background color from corners
+        let avgR = 0, avgG = 0, avgB = 0;
+        for (let i = 0; i < sampleCorners.length; i += 3) {
+          avgR += sampleCorners[i];
+          avgG += sampleCorners[i + 1];
+          avgB += sampleCorners[i + 2];
+        }
+        avgR /= 4;
+        avgG /= 4;
+        avgB /= 4;
+
+        // Remove background pixels that are similar to the corner colors
+        const threshold = 30; // Color difference threshold
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // Calculate color distance from background
+          const colorDistance = Math.sqrt(
+            Math.pow(r - avgR, 2) + 
+            Math.pow(g - avgG, 2) + 
+            Math.pow(b - avgB, 2)
+          );
+          
+          // Also check if it's a very light/white pixel (common background)
+          const brightness = (r + g + b) / 3;
+          const isVeryLight = brightness > 230;
+          
+          // Make pixel transparent if it's similar to background or very light
+          if (colorDistance < threshold || isVeryLight) {
+            // Use a soft edge - gradually fade transparency
+            const alpha = Math.min(1, colorDistance / threshold);
+            data[i + 3] = Math.floor(alpha * 255);
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        // Convert to PNG to preserve transparency
         canvas.toBlob((blob) => {
           if (blob) {
             const url = URL.createObjectURL(blob);
@@ -638,7 +681,73 @@ function App() {
           } else {
             reject(new Error('Failed to create blob'));
           }
-        }, 'image/jpeg', 0.9);
+        }, 'image/png');
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = imageUrl;
+    });
+  };
+
+  // Crop a piece from an image based on location percentages with padding
+  const cropPieceFromImage = async (imagePath: string, location: {x: number, y: number, width: number, height: number}): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        // Convert percentages to pixel coordinates
+        let x = (location.x / 100) * img.width;
+        let y = (location.y / 100) * img.height;
+        let width = (location.width / 100) * img.width;
+        let height = (location.height / 100) * img.height;
+
+        // Add padding (15% of the piece size) to ensure we capture the full piece
+        const paddingX = width * 0.15;
+        const paddingY = height * 0.15;
+        
+        // Adjust coordinates with padding, but stay within image bounds
+        x = Math.max(0, x - paddingX);
+        y = Math.max(0, y - paddingY);
+        width = Math.min(img.width - x, width + (paddingX * 2));
+        height = Math.min(img.height - y, height + (paddingY * 2));
+
+        // Ensure minimum dimensions
+        width = Math.max(width, 50);
+        height = Math.max(height, 50);
+
+        // Set canvas size to cropped dimensions
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw the cropped portion with better quality
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+
+        // Convert to blob URL first
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const croppedUrl = URL.createObjectURL(blob);
+            // Remove background from the cropped image
+            try {
+              const bgRemovedUrl = await removeBackground(croppedUrl);
+              // Clean up the intermediate blob
+              URL.revokeObjectURL(croppedUrl);
+              resolve(bgRemovedUrl);
+            } catch (error) {
+              console.error('Failed to remove background, using cropped image:', error);
+              resolve(croppedUrl);
+            }
+          } else {
+            reject(new Error('Failed to create blob'));
+          }
+        }, 'image/jpeg', 0.95);
       };
       img.onerror = () => reject(new Error('Failed to load image'));
       img.src = imagePath;

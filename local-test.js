@@ -594,26 +594,38 @@ app.post('/api/extract-outfit-pieces', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `You are a fashion expert who analyzes outfit images and extracts individual clothing pieces with their approximate locations. 
-          
-Analyze the image and identify each distinct clothing item, accessory, or outfit piece. For each piece, provide:
-- type: The category (e.g., "top", "bottom", "dress", "outerwear", "shoes", "bag", "accessory", "jewelry")
-- name: Specific name/description (e.g., "white t-shirt", "blue jeans", "black leather jacket")
+          content: `You are a fashion expert analyzing an outfit image. Your task is to identify each distinct clothing piece and provide its approximate location in the image.
+
+For EACH visible clothing item, accessory, or piece, provide:
+- type: Category ("top", "bottom", "dress", "outerwear", "shoes", "bag", "accessory", "jewelry")
+- name: Specific description (e.g., "white t-shirt", "blue jeans", "black leather jacket")
 - color: Primary color(s)
-- style: Style description (e.g., "casual", "formal", "vintage", "modern")
-- details: Additional details like fit, material, patterns, etc.
-- location: Approximate location as percentages of image dimensions: {x: 0-100, y: 0-100, width: 0-100, height: 0-100} where x,y is top-left corner
+- style: Style description ("casual", "formal", "vintage", "modern", etc.)
+- details: Additional details (fit, material, patterns, etc.)
+- location: Approximate bounding box as percentages of image dimensions
+  - x: horizontal position where the piece starts (0-100, percentage from left edge)
+  - y: vertical position where the piece starts (0-100, percentage from top edge)  
+  - width: how wide the piece is (0-100, percentage of total image width)
+  - height: how tall the piece is (0-100, percentage of total image height)
 
-The location should describe where the piece appears in the image as percentages. For example, a top might be at {x: 20, y: 10, width: 60, height: 40} meaning it's centered horizontally (20% from left, 60% wide) and in the upper portion (10% from top, 40% tall).
+IMPORTANT for location accuracy:
+- Look at the image carefully and estimate where each piece is located
+- For a top/shirt: usually in upper-middle area (y: 20-40%, height: 30-50%)
+- For pants/bottoms: usually in lower-middle area (y: 50-80%, height: 30-40%)
+- For a dress: spans upper to lower area (y: 20-30%, height: 50-70%)
+- For shoes: at the bottom (y: 80-95%, height: 10-15%)
+- For bags: can be anywhere, estimate based on visible position
+- Center items horizontally: x around 30-40%, width around 30-50%
+- Include some padding in your estimates to ensure the full piece is captured
 
-Ignore the background completely - focus only on the clothing and accessories visible in the image.
+Think step by step: First identify what pieces are visible, then estimate where each one is positioned in the image frame.
 
-Return a JSON object with this structure:
+Return JSON with this exact structure:
 {
   "outfitPieces": [
     {
       "type": "string",
-      "name": "string",
+      "name": "string", 
       "color": "string",
       "style": "string",
       "details": "string",
