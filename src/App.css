@@ -1211,15 +1211,13 @@ body {
 
 /* Outfit Blurb Styles */
 .outfit-blurb {
-  /* Position on top of the image as an overlay */
+  /* Position below the Get Tips button and slightly to the right */
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 48px; /* Below the button (8px top + 32px height + 8px gap) */
+  right: 8px; /* Aligned with button edge, slightly to the right */
   z-index: 1001; /* Ensure it's always on top */
-  padding: 20px;
-  background: rgba(254, 255, 241, 0.95); /* Semi-transparent white background */
+  padding: 15px;
+  background: rgba(254, 255, 241, 0.98); /* Semi-transparent white background */
   border: 3px solid #0C20F4;
   border-radius: 0;
   font-family: 'P22 Mackinac Pro', serif;
@@ -1228,9 +1226,10 @@ body {
   box-shadow: 4px 4px 0px #0C20F4;
   /* Allow content to scroll if needed */
   overflow-y: auto;
-  max-height: 100%;
+  width: 280px; /* Fixed width so it doesn't cover entire image */
+  max-height: calc(100% - 60px); /* Don't exceed image height minus button space */
   word-wrap: break-word;
-  /* Center content vertically and horizontally */
+  /* Display as a block */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -1369,13 +1368,13 @@ body {
   
   .outfit-blurb {
     font-size: 12px;
-    padding: 15px;
-    /* Ensure mobile outfit blurb covers the image properly */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    max-width: 100%;
+    padding: 12px;
+    /* Position below the Get Tips button on mobile */
+    top: 48px;
+    right: 8px;
+    width: calc(100% - 24px); /* Account for padding and right offset */
+    max-width: 280px;
+    max-height: calc(100% - 60px);
   }
   
   .outfit-blurb .recreation-tips {
