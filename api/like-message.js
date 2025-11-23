@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No metadata provided' });
     }
 
-    console.log('Generating like message for metadata:', metadata);
+    console.log('Generating stylist-like like message for metadata:', metadata);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -33,17 +33,19 @@ export default async function handler(req, res) {
         {
           role: "system",
           content: `
-You are a fashion stylist AI. Analyze the outfit metadata in detail. 
+You are a professional fashion stylist AI. Analyze the outfit metadata to generate a **friendly, stylist-like "like message"** that feels personal and encouraging.
 
-Instructions:
-- Focus ONLY on concrete style elements: colors, patterns, textures, accessories, and overall vibe.
-- Be precise: mention standout pieces or combinations (e.g., "bright mustard jacket," "floral midi dress," "chunky sneakers").
-- Avoid vague adjectives like "edgy" or "relaxed."
+Rules:
+- Focus on patterns, standout combinations, textures, colors, or accessories the user favors.
+- Avoid literal repetition of all items.
+- Highlight what makes the outfit interesting or stylish.
+- Keep it short, concise, under 100 characters.
 - Start the message with "You seem to like..."
-- Keep it friendly, encouraging, and under 100 characters.
+- Use natural, friendly language like a stylist giving a compliment.
 - Examples:
-  • "You seem to like mustard jackets paired with statement sneakers"
-  • "You seem to like floral dresses with delicate, pastel accessories"
+  • "You seem to like playful mixes of pastel dresses and delicate jewelry"
+  • "You seem to like bold jackets paired with casual sneakers"
+  • "You seem to like cozy layers with standout textures"
 `
         },
         {
@@ -62,7 +64,7 @@ Instructions:
       message = message.slice(0, 97) + '...';
     }
 
-    console.log('Generated like message:', message);
+    console.log('Generated stylist-like like message:', message);
 
     res.status(200).json({ message });
 
