@@ -26,53 +26,63 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No metadata array provided' });
     }
 
-    console.log('Generating fashion thesis with metadata count:', metadata.length);
-
-    // Combine all metadata into a single context
     const combinedContext = metadata.join('. ');
 
+    // Generate style thesis
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are a fashion expert who describes what people like in simple, direct language. Write in second person ('you like...', 'you prefer...'). Use plain, everyday words. No fancy descriptions, no flowery language."
+          content: `
+You are a personal fashion stylist creating actionable style advice for a user.
+
+Rules:
+- Analyze the user’s liked outfit images and find patterns.
+- Use second person (“You like…”, “You prefer…”).
+- Include repeated patterns in silhouettes, fits, colors, fabrics, or textures.
+- Suggest concrete clothing items, combinations, or ways to recreate looks.
+- Include one practical tip for building or expanding a wardrobe.
+- Keep sentences simple and clear. Do not use filler or flowery language.
+- Make it directly useful for someone who wants to shop or recreate these outfits.
+- Output exactly 3 sentences: patterns, items, and tip.
+          `
         },
         {
           role: "user",
-          content: `Based on these outfit analyses: "${combinedContext}", write a simple fashion summary in exactly 3 short sentences. Use plain words and write like: 'You like [style]. You prefer [clothing items]. [One simple tip].' Keep it direct and personal. NO fancy language, NO long sentences.`
+          content: `
+The user has liked these outfit images: "${combinedContext}".
+
+Write a 3-sentence style summary:
+
+1. “You like…” → repeated patterns in silhouettes, colors, fits, or fabrics.
+2. “You prefer…” → specific items or combinations visible in the images.
+3. One short, actionable tip to recreate looks or build a wardrobe.
+
+Keep all sentences simple, clear, and practical.
+          `
         }
       ],
-      max_tokens: 100
+      max_tokens: 150
     });
 
-    const thesis = response.choices[0].message.content;
-    console.log('Generated fashion thesis:', thesis);
+    const thesis = response.choices[0].message.content.trim();
 
     res.status(200).json({ thesis });
+
   } catch (error) {
     console.error('OpenAI API error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      type: error.type
-    });
-    
+
     if (error.code === 'insufficient_quota') {
-      return res.status(402).json({ 
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.' 
-      });
-    }
-    
-    if (error.code === 'invalid_api_key') {
-      return res.status(401).json({ 
-        error: 'Invalid OpenAI API key. Please check your configuration.' 
-      });
+      return res.status(402).json({ error: 'OpenAI API quota exceeded.' });
     }
 
-    res.status(500).json({ 
-      error: 'Failed to generate fashion thesis. Please try again.',
+    if (error.code === 'invalid_api_key') {
+      return res.status(401).json({ error: 'Invalid API key.' });
+    }
+
+    res.status(500).json({
+      error: 'Failed to generate fashion thesis.',
       details: error.message
     });
   }

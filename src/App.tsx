@@ -63,6 +63,7 @@ function App() {
   // New state for color insights and clothing preferences
   const [colorInsights, setColorInsights] = useState<string>('');
   const [clothingPreferences, setClothingPreferences] = useState<string>('');
+  const [fashionThesis, setFashionThesis] = useState<string>('');
   
   // Separate loading state for AI analysis (not for image transitions)
   const [isAnalyzingAI, setIsAnalyzingAI] = useState<boolean>(false);
@@ -70,7 +71,8 @@ function App() {
   // State for draggable box positions
   const [boxPositions, setBoxPositions] = useState({
     colorInsights: { x: 40, y: 80 },
-    clothingPreferences: { x: 40, y: 200 }
+    clothingPreferences: { x: 40, y: 200 },
+    fashionThesis: { x: 40, y: 320 }
   });
   
   // State for tracking which box is being dragged
@@ -131,6 +133,10 @@ function App() {
           clothingPreferences: {
             x: Math.max(margin, Math.min(prev.clothingPreferences.x, window.innerWidth - boxWidth - margin)),
             y: Math.max(margin, Math.min(prev.clothingPreferences.y, window.innerHeight - boxHeight - margin))
+          },
+          fashionThesis: {
+            x: Math.max(margin, Math.min(prev.fashionThesis?.x || 40, window.innerWidth - boxWidth - margin)),
+            y: Math.max(margin, Math.min(prev.fashionThesis?.y || 320, window.innerHeight - boxHeight - margin))
           }
         };
       });
@@ -378,6 +384,44 @@ function App() {
     }
   }, [])
 
+  // Generate fashion thesis using GPT API
+  const generateFashionThesis = useCallback(async (metadataList: string[]) => {
+    console.log('Generating fashion thesis with metadata:', metadataList)
+    
+    const requestData = { metadata: metadataList };
+    
+    try {
+      // Use localhost for local testing, production API for deployed app
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3002/api/fashion-thesis' : '/api/fashion-thesis';
+      
+      console.log('Using fashion-thesis API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Fashion thesis API error response:', errorText);
+        const error = `Failed to generate fashion thesis: ${response.status} - ${errorText}`;
+        throw new Error(error);
+      }
+
+      const data = await response.json();
+      console.log('Fashion thesis API response:', data);
+      
+      return data.thesis || 'Your style is uniquely yours!';
+    } catch (error) {
+      console.error('Error generating fashion thesis:', error)
+      return 'Your style is uniquely yours!'
+    }
+  }, [])
+
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -417,6 +461,7 @@ function App() {
     if (likedImages.length < 3) {
       setColorInsights('')
       setClothingPreferences('')
+      setFashionThesis('')
       return
     }
     
@@ -433,6 +478,7 @@ function App() {
         if (filteredImages.length < 2) {
           setColorInsights('')
           setClothingPreferences('')
+          setFashionThesis('')
           return;
         }
 
@@ -450,13 +496,16 @@ function App() {
         // Generate all insights in parallel for speed
         Promise.all([
           generateColorInsights(metadataList),
-          generateClothingPreferences(metadataList)
-        ]).then(([colorInsights, clothingPrefs]) => {
+          generateClothingPreferences(metadataList),
+          generateFashionThesis(metadataList)
+        ]).then(([colorInsights, clothingPrefs, thesis]) => {
           console.log('✅ All insights regenerated successfully based on current likes')
           console.log('Color insights received:', colorInsights ? 'Yes' : 'No', colorInsights?.substring(0, 50))
           console.log('Clothing preferences received:', clothingPrefs ? 'Yes' : 'No', clothingPrefs?.substring(0, 50))
+          console.log('Fashion thesis received:', thesis ? 'Yes' : 'No', thesis?.substring(0, 50))
           setColorInsights(colorInsights || '')
           setClothingPreferences(clothingPrefs || '')
+          setFashionThesis(thesis || '')
           
           // Log AI insights for analysis
         }).catch(error => {
@@ -465,6 +514,7 @@ function App() {
           // Set fallback content on error
           setColorInsights('Unable to analyze color preferences at this time.')
           setClothingPreferences('Unable to analyze style preferences at this time.')
+          setFashionThesis('Unable to generate fashion thesis at this time.')
         }).finally(() => {
           // Clear AI analysis loading state
           setIsAnalyzingAI(false)
@@ -474,7 +524,7 @@ function App() {
       // Cleanup timeout if component unmounts or effect runs again
       return () => clearTimeout(timeoutId)
     }
-  }, [activeTab, likedImages.length, generateClothingPreferences])
+  }, [activeTab, likedImages.length, generateClothingPreferences, generateFashionThesis])
 
   // Generate outfit implementation blurb
   const generateOutfitBlurb = async (metadata: string, index: number) => {
@@ -927,6 +977,32 @@ function App() {
           ) : clothingPreferences ? (
             <div className="clothing-content">
               <ul dangerouslySetInnerHTML={{ __html: formatAIText(clothingPreferences) }} />
+            </div>
+          ) : (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Waiting for your style data...
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Fashion Thesis Box - Always Visible */}
+      <div 
+        className="insight-box fashion-thesis"
+        style={getResponsivePosition('fashionThesis')}
+        onMouseDown={(e) => handleMouseDown(e, 'fashionThesis')}
+      >
+        <h3>Your Style Thesis</h3>
+        <div className="insight-content">
+          {isAnalyzingAI ? (
+            <div className="insight-loading">
+              <div className="loading-spinner"></div>
+              Analyzing your style thesis...
+            </div>
+          ) : fashionThesis ? (
+            <div className="clothing-content">
+              <p>{fashionThesis}</p>
             </div>
           ) : (
             <div className="insight-loading">

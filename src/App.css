@@ -533,16 +533,29 @@ body {
   line-height: 1.5;
 }
 
-/* Fashion Thesis */
-.fashion-thesis {
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #0C20F4 0%, #1e40af 100%);
-  border-radius: 0;
-  color: white;
-  box-shadow: 0 8px 32px rgba(12, 32, 244, 0.2);
+/* Fashion Thesis - matches Style Blueprint design */
+.insight-box.fashion-thesis {
+  background: #f8f9fa;
+  border: 3px solid #0C20F4;
+}
+
+.insight-box.fashion-thesis h3 {
+  color: #0C20F4;
+}
+
+.insight-box.fashion-thesis .insight-content {
+  color: #000000;
+}
+
+.insight-box.fashion-thesis .thesis-content {
+  color: #000000;
+}
+
+.insight-box.fashion-thesis .thesis-content p {
+  color: #000000;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .thesis-content h3 {
