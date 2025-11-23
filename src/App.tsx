@@ -461,13 +461,22 @@ function App() {
       console.log('Brand suggestions API response:', data);
       console.log('Brand suggestions value:', data.brands);
       console.log('Brand suggestions type:', typeof data.brands);
+      console.log('Brand suggestions length:', data.brands ? data.brands.length : 0);
       
-      if (!data.brands || (typeof data.brands === 'string' && data.brands.trim() === '')) {
-        console.warn('Brand suggestions API returned empty or invalid response:', data);
+      // Check if brands exists and is not empty
+      if (!data || !data.brands) {
+        console.warn('Brand suggestions API returned no brands field:', data);
         return 'Explore brands that match your style!';
       }
       
-      return data.brands;
+      const brandsString = String(data.brands).trim();
+      if (brandsString === '' || brandsString === 'null' || brandsString === 'undefined') {
+        console.warn('Brand suggestions API returned empty string:', data);
+        return 'Explore brands that match your style!';
+      }
+      
+      console.log('Returning brands:', brandsString);
+      return brandsString;
     } catch (error) {
       console.error('Error generating brand suggestions:', error);
       console.error('Error details:', error instanceof Error ? error.message : error);
@@ -1090,7 +1099,7 @@ function App() {
             </div>
           ) : brandSuggestions ? (
             <div className="clothing-content">
-              <p>{brandSuggestions}</p>
+              <p style={{ margin: 0, padding: 0 }}>{brandSuggestions}</p>
             </div>
           ) : (
             <div className="insight-loading">
