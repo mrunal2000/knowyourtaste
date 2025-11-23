@@ -8,6 +8,13 @@ interface OutfitPiece {
   color: string
   style: string
   details: string
+  location?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+  croppedImageUrl?: string
 }
 
 interface ImageWithMetadata {
@@ -597,6 +604,47 @@ function App() {
     setDraggedBox(null);
   };
 
+  // Crop a piece from an image based on location percentages
+  const cropPieceFromImage = async (imagePath: string, location: {x: number, y: number, width: number, height: number}): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        // Convert percentages to pixel coordinates
+        const x = (location.x / 100) * img.width;
+        const y = (location.y / 100) * img.height;
+        const width = (location.width / 100) * img.width;
+        const height = (location.height / 100) * img.height;
+
+        // Set canvas size to cropped dimensions
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw the cropped portion
+        ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+
+        // Convert to blob URL
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            resolve(url);
+          } else {
+            reject(new Error('Failed to create blob'));
+          }
+        }, 'image/jpeg', 0.9);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = imagePath;
+    });
+  };
+
   // Extract outfit pieces from an image using OpenAI API
   const extractOutfitPieces = useCallback(async (imagePath: string, updateState: boolean = false): Promise<OutfitPiece[]> => {
     try {
@@ -642,9 +690,28 @@ function App() {
       console.log(`✅ Extracted ${extractData.outfitPieces?.length || 0} outfit pieces:`, extractData);
       console.log('📦 Full response:', JSON.stringify(extractData, null, 2));
       
-      const pieces = extractData.outfitPieces || [];
+      let pieces = extractData.outfitPieces || [];
       console.log(`📋 Pieces array:`, pieces);
       console.log(`📊 Pieces length:`, pieces.length);
+      
+      // Crop images for pieces that have location data
+      if (pieces.length > 0) {
+        const piecesWithImages = await Promise.all(
+          pieces.map(async (piece: OutfitPiece) => {
+            if (piece.location) {
+              try {
+                const croppedUrl = await cropPieceFromImage(imagePath, piece.location);
+                return { ...piece, croppedImageUrl: croppedUrl };
+              } catch (error) {
+                console.error(`Failed to crop piece ${piece.name}:`, error);
+                return piece;
+              }
+            }
+            return piece;
+          })
+        );
+        pieces = piecesWithImages;
+      }
       
       // Update the liked images with the extracted pieces
       // Use empty array if no pieces found to mark as "processed" and prevent re-extraction
@@ -1112,27 +1179,38 @@ function App() {
                       <div className="outfit-pieces-container">
                         <div className="outfit-pieces-grid">
                           {item.outfitPieces!.map((piece, pieceIndex) => (
-                        <div key={pieceIndex} className="outfit-piece-card">
-                          <div className="piece-type-badge">{piece.type || 'item'}</div>
-                          <div className="piece-name">{piece.name || 'Unknown piece'}</div>
-                          <div className="piece-details">
-                            {piece.color && (
-                              <div className="piece-color">
-                                <span className="color-label">Color:</span> {piece.color}
+                            <div key={pieceIndex} className="outfit-piece-card">
+                              {piece.croppedImageUrl ? (
+                                <div className="piece-image-wrapper">
+                                  <img 
+                                    src={piece.croppedImageUrl} 
+                                    alt={piece.name || piece.type}
+                                    className="piece-image"
+                                  />
+                                  <div className="piece-type-badge-overlay">{piece.type || 'item'}</div>
+                                </div>
+                              ) : (
+                                <div className="piece-type-badge">{piece.type || 'item'}</div>
+                              )}
+                              <div className="piece-name">{piece.name || 'Unknown piece'}</div>
+                              <div className="piece-details">
+                                {piece.color && (
+                                  <div className="piece-color">
+                                    <span className="color-label">Color:</span> {piece.color}
+                                  </div>
+                                )}
+                                {piece.style && (
+                                  <div className="piece-style">
+                                    <span className="style-label">Style:</span> {piece.style}
+                                  </div>
+                                )}
+                                {piece.details && (
+                                  <div className="piece-additional-details">{piece.details}</div>
+                                )}
                               </div>
-                            )}
-                            {piece.style && (
-                              <div className="piece-style">
-                                <span className="style-label">Style:</span> {piece.style}
-                              </div>
-                            )}
-                            {piece.details && (
-                              <div className="piece-additional-details">{piece.details}</div>
-                            )}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
                     <button 
                       className="hanger-button"
                       onClick={(e) => {

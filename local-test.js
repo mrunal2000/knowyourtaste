@@ -594,7 +594,7 @@ app.post('/api/extract-outfit-pieces', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `You are a fashion expert who analyzes outfit images and extracts individual clothing pieces. 
+          content: `You are a fashion expert who analyzes outfit images and extracts individual clothing pieces with their approximate locations. 
           
 Analyze the image and identify each distinct clothing item, accessory, or outfit piece. For each piece, provide:
 - type: The category (e.g., "top", "bottom", "dress", "outerwear", "shoes", "bag", "accessory", "jewelry")
@@ -602,6 +602,9 @@ Analyze the image and identify each distinct clothing item, accessory, or outfit
 - color: Primary color(s)
 - style: Style description (e.g., "casual", "formal", "vintage", "modern")
 - details: Additional details like fit, material, patterns, etc.
+- location: Approximate location as percentages of image dimensions: {x: 0-100, y: 0-100, width: 0-100, height: 0-100} where x,y is top-left corner
+
+The location should describe where the piece appears in the image as percentages. For example, a top might be at {x: 20, y: 10, width: 60, height: 40} meaning it's centered horizontally (20% from left, 60% wide) and in the upper portion (10% from top, 40% tall).
 
 Ignore the background completely - focus only on the clothing and accessories visible in the image.
 
@@ -613,7 +616,8 @@ Return a JSON object with this structure:
       "name": "string",
       "color": "string",
       "style": "string",
-      "details": "string"
+      "details": "string",
+      "location": {"x": number, "y": number, "width": number, "height": number}
     }
   ]
 }`
