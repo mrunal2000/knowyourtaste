@@ -1057,8 +1057,28 @@ function App() {
     <Routes>
       <Route path="/" element={
         <>
-          {/* Dot Grid Background - Outside app container */}
-          {!showSplash && <div className="grid-background"></div>}
+          {/* Dot Grid Background - Always visible */}
+          <div className="grid-background"></div>
+          
+          {/* Decorative Flowers - Always visible */}
+          {flowerPositions.map((pos, index) => (
+            <img
+              key={index}
+              src={`/flower ${pos.flowerIndex}.png`}
+              alt={`Flower ${pos.flowerIndex}`}
+              className="decorative-flower"
+              style={{
+                position: 'fixed',
+                left: `${pos.x}px`,
+                top: `${pos.y}px`,
+                zIndex: 1,
+                pointerEvents: 'none',
+                opacity: pos.opacity,
+                transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`,
+                transformOrigin: 'center'
+              }}
+            />
+          ))}
           
           {/* Splash Screen */}
           {showSplash && (
@@ -1074,26 +1094,6 @@ function App() {
           {/* Main App */}
           {!showSplash && (
             <div className="app">
-              {/* Decorative Flowers */}
-              {flowerPositions.map((pos, index) => (
-                <img
-                  key={index}
-                  src={`/flower ${pos.flowerIndex}.png`}
-                  alt={`Flower ${pos.flowerIndex}`}
-                  className="decorative-flower"
-                  style={{
-                    position: 'fixed',
-                    left: `${pos.x}px`,
-                    top: `${pos.y}px`,
-                    zIndex: 1,
-                    pointerEvents: 'none',
-                    opacity: pos.opacity,
-                    transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`,
-                    transformOrigin: 'center'
-                  }}
-                />
-              ))}
-              
               {/* Header with Logo */}
               {/* <div className="header">
                 <img src="/logo.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
