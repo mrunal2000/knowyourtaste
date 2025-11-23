@@ -5,14 +5,13 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
-  // Enable CORS
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -28,44 +27,67 @@ export default async function handler(req, res) {
 
     console.log('Generating outfit recreation tips for metadata:', metadata);
 
+    // 🔥 MUCH BETTER PROMPT: Stylist tone, concise, no repetition
+    const prompt = `
+You are a senior fashion stylist. 
+You will receive an outfit insight or outfit analysis. 
+Your job is to give clear, stylist-level guidance on how someone can recreate the look.
+
+Rules:
+- DO NOT repeat or describe the original metadata.
+- DO NOT restate items from the text.
+- Focus on what someone should *do* to recreate the vibe.
+- Keep the tone: confident, precise, stylist-approved.
+- Output ONLY 3–4 numbered tips.
+- Every tip must be practical and specific:
+  • what clothing pieces to look for  
+  • styling techniques  
+  • proportions/silhouettes to match  
+  • accessories to elevate  
+  • how to achieve the overall vibe  
+
+Respond ONLY in a numbered list.
+
+Outfit insight:
+"${metadata}"
+`;
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        {
-          role: "user",
-          content: `Based on this outfit analysis: "${metadata}", provide 3-4 specific, actionable tips on how to recreate this outfit. Focus on: 1) Key clothing items to find, 2) Specific styling techniques, 3) Accessories and details, 4) How to achieve the overall look. Keep each tip concise and practical. Format as a numbered list.`
-        }
+        { role: "system", content: `
+You are a luxury fashion stylist known for giving concise, actionable, 
+expert-level outfit recreation guidance. You never repeat the user's text — 
+you only deliver elevated, specific styling instructions.
+`},
+        { role: "user", content: prompt }
       ],
-      max_tokens: 200
+      max_tokens: 200,
+      temperature: 0.55, // balanced: stylish, not chaotic
     });
 
     const tips = response.choices[0].message.content;
-    console.log('Generated outfit tips:', tips);
+    console.log("Generated outfit tips:", tips);
 
     res.status(200).json({ tips });
+
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      type: error.type
-    });
-    
-    if (error.code === 'insufficient_quota') {
-      return res.status(402).json({ 
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.' 
-      });
-    }
-    
-    if (error.code === 'invalid_api_key') {
-      return res.status(401).json({ 
-        error: 'Invalid OpenAI API key. Please check your configuration.' 
+    console.error("OpenAI API error:", error);
+
+    if (error.code === "insufficient_quota") {
+      return res.status(402).json({
+        error: "OpenAI API quota exceeded. Please check your OpenAI account billing."
       });
     }
 
-    res.status(500).json({ 
-      error: 'Failed to generate outfit tips. Please try again.',
+    if (error.code === "invalid_api_key") {
+      return res.status(401).json({
+        error: "Invalid OpenAI API key. Please check your configuration."
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to generate outfit tips. Please try again.",
       details: error.message
     });
   }

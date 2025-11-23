@@ -56,7 +56,6 @@ function App() {
     }));
   })
 
-  const [fashionThesis, setFashionThesis] = useState<string>('');
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
@@ -71,8 +70,7 @@ function App() {
   // State for draggable box positions
   const [boxPositions, setBoxPositions] = useState({
     colorInsights: { x: 40, y: 80 },
-    clothingPreferences: { x: 40, y: 200 },
-    fashionThesis: { x: Math.max(40, window.innerWidth - 360), y: 140 }
+    clothingPreferences: { x: 40, y: 200 }
   });
   
   // State for tracking which box is being dragged
@@ -97,10 +95,6 @@ function App() {
           clothingPreferences: {
             x: Math.max(margin, Math.min(prev.clothingPreferences.x, window.innerWidth - boxWidth - margin)),
             y: Math.max(margin, Math.min(prev.clothingPreferences.y, window.innerHeight - boxHeight - margin))
-          },
-          fashionThesis: {
-            x: Math.max(margin, Math.min(prev.fashionThesis.x, window.innerWidth - boxWidth - margin)),
-            y: Math.max(margin, Math.min(prev.fashionThesis.y, window.innerHeight - boxHeight - margin))
           }
         };
       });
@@ -243,50 +237,6 @@ function App() {
     return getCurrentImages().length;
   };
 
-  // Function to generate fashion thesis using GPT API
-  const generateFashionThesis = async (metadataList: string[]) => {
-    console.log('Generating thesis with metadata:', metadataList)
-    
-    const requestData = { metadata: metadataList };
-    
-    try {
-      // Use localhost for local testing, production API for deployed app
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiUrl = isLocalhost ? 'http://localhost:3002/api/fashion-thesis' : '/api/fashion-thesis';
-      
-      console.log('Using fashion-thesis API URL:', apiUrl);
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Fashion thesis API error response:', errorText);
-        const error = `Failed to generate fashion thesis: ${response.status} - ${errorText}`;
-        
-        // Log failed API call
-
-        throw new Error(error);
-      }
-
-      const data = await response.json();
-      console.log('Fashion thesis API response:', data);
-      
-      // Log successful API call
-      
-      
-      return data.thesis;
-    } catch (error) {
-      console.error('Error generating thesis:', error)
-      return 'Your fashion taste is evolving and unique!'
-    }
-  }
-
   // Generate color insights using GPT API
   const generateColorInsights = async (metadataList: string[]) => {
     console.log('Generating color insights with metadata:', metadataList)
@@ -409,7 +359,6 @@ function App() {
   useEffect(() => {
     // Clear insights if we don't have enough liked images
     if (likedImages.length < 3) {
-      setFashionThesis('')
       setColorInsights('')
       setClothingPreferences('')
       return
@@ -426,7 +375,6 @@ function App() {
 
         // Only proceed if we have enough filtered images
         if (filteredImages.length < 2) {
-          setFashionThesis('')
           setColorInsights('')
           setClothingPreferences('')
           return;
@@ -445,12 +393,10 @@ function App() {
         
         // Generate all insights in parallel for speed
         Promise.all([
-          generateFashionThesis(metadataList),
           generateColorInsights(metadataList),
           generateClothingPreferences(metadataList)
-        ]).then(([thesis, colorInsights, clothingPrefs]) => {
+        ]).then(([colorInsights, clothingPrefs]) => {
           console.log('✅ All insights regenerated successfully based on current likes')
-          setFashionThesis(thesis)
           setColorInsights(colorInsights)
           setClothingPreferences(clothingPrefs)
           
@@ -458,7 +404,6 @@ function App() {
         }).catch(error => {
           console.error('❌ Error generating insights:', error)
           // Set fallback content on error
-          setFashionThesis('Unable to generate fashion thesis at this time.')
           setColorInsights('Unable to analyze color preferences at this time.')
           setClothingPreferences('Unable to analyze style preferences at this time.')
         }).finally(() => {
@@ -731,7 +676,6 @@ function App() {
 
   const handleResetAll = () => {
     setLikedImages([]);
-    setFashionThesis('');
     setColorInsights('');
     setClothingPreferences('');
     // Start from a random image instead of always starting from 0
@@ -931,31 +875,6 @@ function App() {
         </div>
       </div>
 
-      {/* Fashion Thesis Box - Always Visible */}
-      <div 
-        className="insight-box fashion-thesis"
-        style={getResponsivePosition('fashionThesis')}
-        onMouseDown={(e) => handleMouseDown(e, 'fashionThesis')}
-      >
-        <h3>Your Fashion Thesis</h3>
-        <div className="insight-content">
-          {isAnalyzingAI ? (
-            <div className="insight-loading">
-              <div className="loading-spinner"></div>
-              Generating your fashion thesis...
-            </div>
-          ) : fashionThesis ? (
-            <div className="thesis-content">
-              <div dangerouslySetInnerHTML={{ __html: formatAIText(fashionThesis) }} />
-            </div>
-          ) : (
-            <div className="insight-loading">
-              <div className="loading-spinner"></div>
-              Waiting for your style data...
-            </div>
-          )}
-        </div>
-      </div>
       </div> {/* Close insights-container */}
       
       {likedImages.length === 0 ? (

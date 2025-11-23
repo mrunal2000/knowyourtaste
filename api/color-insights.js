@@ -8,14 +8,13 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
-  // Enable CORS
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -29,63 +28,85 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Metadata array is required' });
     }
 
-    const prompt = `Based on these fashion outfit descriptions, analyze the color preferences and create a color palette. 
+    // 🔥 Improved prompt that avoids randomness + ensures real pattern extraction
+    const prompt = `
+You will receive a collection of outfit descriptions. 
+Analyze **all descriptions together** and extract recurring color patterns.
 
-IMPORTANT: Provide colors in this EXACT format:
-#HEXCODE - Color Name (e.g., #FF6B6B - Coral Red)
+Rules:
+- DO NOT describe the outfits.
+- DO NOT list colors from each description individually.
+- Only include colors that appear repeatedly or strongly implied by multiple outfits.
+- Infer a cohesive palette based on dominant tones and common accents.
+- Avoid unrealistic or overly aesthetic names.
+- Only output the colors in the required sections.
 
-Focus on:
-1. **Primary Colors**: 3-4 main colors the user gravitates toward
-2. **Accent Colors**: 2-3 complementary colors they use
-3. **Neutral Colors**: 2-3 neutral/base colors they prefer
+Your output must use EXACTLY this structure (nothing before or after):
 
-Outfit descriptions:
+**Primary Colors**
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+
+**Accent Colors**
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+
+**Neutral Colors**
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+
+All Outfit Descriptions:
 ${metadata.join('\n')}
-
-Provide ONLY the color palette in hex format with color names. No explanations, just the colors.`;
+`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a fashion color analyst expert. Provide ONLY a color palette in hex format with color names. Use the exact format: #HEXCODE - Color Name. Focus on identifying the actual colors the user chooses, not abstract analysis."
+          content: `
+You are a senior fashion color analyst. 
+Your job is to identify color patterns across multiple outfit descriptions 
+using aggregate analysis — not listing or restating items.
+
+CRITICAL RULES:
+- Do NOT provide explanations.
+- Do NOT describe the images.
+- Do NOT output anything except the required palette format.
+- Choose only realistic hex codes that approximate the repeated tones.
+- Keep color names simple and recognizable (e.g., "Dusty Pink", "Charcoal", "Olive").
+- Do not output more or fewer colors than requested.
+`
         },
-        {
-          role: "user",
-          content: prompt
-        }
+        { role: "user", content: prompt }
       ],
-      max_tokens: 150,
-      temperature: 0.7,
+      max_tokens: 200,
+      temperature: 0.4 // lower temp = stable, non-random palette
     });
 
     const insights = completion.choices[0].message.content;
 
     res.status(200).json({ insights });
+
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      type: error.type
-    });
-    
-    if (error.code === 'insufficient_quota') {
-      return res.status(402).json({ 
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.' 
-      });
-    }
-    
-    if (error.code === 'invalid_api_key') {
-      return res.status(401).json({ 
-        error: 'Invalid OpenAI API key. Please check your configuration.' 
+    console.error("OpenAI API error:", error);
+
+    if (error.code === "insufficient_quota") {
+      return res.status(402).json({
+        error: "OpenAI API quota exceeded. Check your billing."
       });
     }
 
-    res.status(500).json({ 
-      error: 'Failed to generate color insights. Please try again.',
+    if (error.code === "invalid_api_key") {
+      return res.status(401).json({
+        error: "Invalid OpenAI API key. Check configuration."
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to generate color insights. Please try again.",
       details: error.message
     });
   }

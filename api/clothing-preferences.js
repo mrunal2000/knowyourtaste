@@ -8,14 +8,13 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
-  // Enable CORS
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -29,63 +28,85 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Metadata array is required' });
     }
 
-    const prompt = `Analyze ALL of these fashion outfit descriptions TOGETHER to identify the specific clothing pieces and accessories the user consistently likes. Look for patterns in their actual clothing choices.
+    // 🔥 Improved prompt that avoids randomness + ensures real pattern extraction
+    const prompt = `
+You will receive a collection of outfit descriptions. 
+Analyze **all descriptions together** and extract recurring color patterns.
 
-Provide ONLY key style insights in this exact format:
+Rules:
+- DO NOT describe the outfits.
+- DO NOT list colors from each description individually.
+- Only include colors that appear repeatedly or strongly implied by multiple outfits.
+- Infer a cohesive palette based on dominant tones and common accents.
+- Avoid unrealistic or overly aesthetic names.
+- Only output the colors in the required sections.
 
-• **Tops** - [specific types like: loose tops, fitted tops, crop tops, oversized sweaters, etc.]
-• **Bottoms** - [specific types like: tailored trousers, high-waisted jeans, midi skirts, etc.]
-• **Outerwear** - [specific types like: blazers, leather jackets, oversized coats, etc.]
-• **Accessories** - [specific types like: bold jewelry, gold accessories, statement bags, etc.]
-• **Shoes** - [specific types like: ankle boots, sneakers, heels, etc.]
+Your output must use EXACTLY this structure (nothing before or after):
 
-Focus on identifying the actual clothing pieces they choose, not abstract style concepts. Keep each bullet point specific and brief.
+**Primary Colors**
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+#HEXCODE - Color Name
 
-ALL Outfit Descriptions (analyze together):
-${metadata.join('\n')}`;
+**Accent Colors**
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+
+**Neutral Colors**
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+#HEXCODE - Color Name
+
+All Outfit Descriptions:
+${metadata.join('\n')}
+`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a fashion stylist expert. Analyze ALL outfit descriptions TOGETHER to identify the specific clothing pieces and accessories the user consistently chooses. Focus on actual clothing items, not abstract style concepts. Provide ONLY brief, specific insights in the exact bullet-point format requested."
+          content: `
+You are a senior fashion color analyst. 
+Your job is to identify color patterns across multiple outfit descriptions 
+using aggregate analysis — not listing or restating items.
+
+CRITICAL RULES:
+- Do NOT provide explanations.
+- Do NOT describe the images.
+- Do NOT output anything except the required palette format.
+- Choose only realistic hex codes that approximate the repeated tones.
+- Keep color names simple and recognizable (e.g., "Dusty Pink", "Charcoal", "Olive").
+- Do not output more or fewer colors than requested.
+`
         },
-        {
-          role: "user",
-          content: prompt
-        }
+        { role: "user", content: prompt }
       ],
-      max_tokens: 250,
-      temperature: 0.7,
+      max_tokens: 200,
+      temperature: 0.4 // lower temp = stable, non-random palette
     });
 
-    const preferences = completion.choices[0].message.content;
+    const insights = completion.choices[0].message.content;
 
-    res.status(200).json({ preferences });
+    res.status(200).json({ insights });
+
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      type: error.type
-    });
-    
-    if (error.code === 'insufficient_quota') {
-      return res.status(402).json({ 
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.' 
-      });
-    }
-    
-    if (error.code === 'invalid_api_key') {
-      return res.status(401).json({ 
-        error: 'Invalid OpenAI API key. Please check your configuration.' 
+    console.error("OpenAI API error:", error);
+
+    if (error.code === "insufficient_quota") {
+      return res.status(402).json({
+        error: "OpenAI API quota exceeded. Check your billing."
       });
     }
 
-    res.status(500).json({ 
-      error: 'Failed to generate clothing preferences. Please try again.',
+    if (error.code === "invalid_api_key") {
+      return res.status(401).json({
+        error: "Invalid OpenAI API key. Check configuration."
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to generate color insights. Please try again.",
       details: error.message
     });
   }
