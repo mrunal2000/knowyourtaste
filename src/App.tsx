@@ -107,6 +107,32 @@ function App() {
 
 
 
+  // Helper function to format tips as a numbered list
+  const formatTipsAsNumberedList = (text: string) => {
+    if (!text) return '';
+    
+    // Split text by lines
+    const lines = text.split('\n').filter(line => line.trim());
+    
+    // Format each line as a list item if it starts with a number
+    const formatted = lines.map(line => {
+      const trimmed = line.trim();
+      // Check if line starts with a number followed by a period or dot
+      const numberedMatch = trimmed.match(/^\d+[\.\)]\s*(.+)$/);
+      if (numberedMatch) {
+        const content = numberedMatch[1];
+        return `<li>${content}</li>`;
+      }
+      // If it doesn't match numbered format, try to preserve it
+      if (trimmed) {
+        return `<li>${trimmed}</li>`;
+      }
+      return '';
+    }).filter(item => item).join('');
+    
+    return `<ol>${formatted}</ol>`;
+  };
+
   // Helper function to format AI-generated text with compact, readable layout
   const formatAIText = (text: string) => {
     if (!text) return '';
@@ -923,6 +949,21 @@ function App() {
                   >
                     🧥 Get Tips
                   </button>
+                  {clickedImageIndex === index && selectedImageBlurb && (
+                    <div className="outfit-blurb">
+                      {isGeneratingBlurb ? (
+                        <div className="blurb-loading">
+                          <div className="loading-spinner"></div>
+                          Generating outfit tips...
+                        </div>
+                      ) : (
+                        <div className="blurb-content">
+                          <h4>How to Recreate This Look:</h4>
+                          <div className="recreation-tips" dangerouslySetInnerHTML={{ __html: formatTipsAsNumberedList(selectedImageBlurb) }} />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="polaroid">
                   <div className="polaroid-metadata">
@@ -940,23 +981,6 @@ function App() {
                       )}
                     </div>
                   </div>
-                  {clickedImageIndex === index && selectedImageBlurb && (
-                    <div className="outfit-blurb">
-                      {isGeneratingBlurb ? (
-                        <div className="blurb-loading">
-                          <div className="loading-spinner"></div>
-                          Generating outfit tips...
-                        </div>
-                      ) : (
-                        <div className="blurb-content">
-                          <h4>How to Recreate This Look:</h4>
-                          <div className="recreation-tips">
-                            {selectedImageBlurb}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

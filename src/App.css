@@ -1211,27 +1211,29 @@ body {
 
 /* Outfit Blurb Styles */
 .outfit-blurb {
-  /* CHANGED: Back to absolute positioning but with proper z-index management */
+  /* Position on top of the image as an overlay */
   position: absolute;
-  top: 100%;
+  top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   z-index: 1001; /* Ensure it's always on top */
-  margin-top: 10px;
-  padding: 15px;
-  background: #FEFFF1;
-  border: 2px solid #0C20F4;
+  padding: 20px;
+  background: rgba(254, 255, 241, 0.95); /* Semi-transparent white background */
+  border: 3px solid #0C20F4;
   border-radius: 0;
   font-family: 'P22 Mackinac Pro', serif;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.6;
   box-shadow: 4px 4px 0px #0C20F4;
-  /* Allow content to expand naturally */
-  min-height: auto;
-  max-width: 100%;
+  /* Allow content to scroll if needed */
+  overflow-y: auto;
+  max-height: 100%;
   word-wrap: break-word;
-  /* Ensure proper flow in document */
-  display: block;
+  /* Center content vertically and horizontally */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .blurb-loading {
@@ -1242,15 +1244,21 @@ body {
   font-style: italic;
 }
 
-.blurb-content h4 {
-  margin: 0 0 8px 0;
-  color: #0C20F4;
-  font-size: 16px;
-  font-weight: bold;
-}
 
 .blurb-content {
   color: #000;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.blurb-content h4 {
+  margin-bottom: 15px;
+  color: #0C20F4;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1.2;
 }
 
 /* Override AI text color for outfit blurb */
@@ -1308,18 +1316,21 @@ body {
 
 /* Outfit Tips Styling */
 .outfit-blurb .recreation-tips {
-  line-height: 1.6;
+  line-height: 1.8;
   font-size: 14px;
+  margin-top: 10px;
 }
 
 .outfit-blurb .recreation-tips ol {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 25px;
+  list-style-type: decimal;
 }
 
 .outfit-blurb .recreation-tips li {
   margin-bottom: 12px;
   padding-left: 8px;
+  display: list-item;
 }
 
 .outfit-blurb .recreation-tips li:last-child {
@@ -1358,11 +1369,25 @@ body {
   
   .outfit-blurb {
     font-size: 12px;
-    padding: 12px;
-    /* Ensure mobile outfit blurb has proper width */
-    left: -25px;
-    right: -25px;
-    max-width: calc(100vw - 40px);
+    padding: 15px;
+    /* Ensure mobile outfit blurb covers the image properly */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 100%;
+  }
+  
+  .outfit-blurb .recreation-tips {
+    font-size: 12px;
+  }
+  
+  .outfit-blurb .recreation-tips ol {
+    padding-left: 20px;
+  }
+  
+  .outfit-blurb .recreation-tips li {
+    margin-bottom: 10px;
   }
 }
 
