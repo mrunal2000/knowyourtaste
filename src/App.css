@@ -704,6 +704,105 @@ body {
   white-space: normal;
 }
 
+/* Outfit Pieces Display */
+.outfit-pieces-container {
+  position: relative;
+  width: 100%;
+  border: 2px solid #0C20F4;
+  border-radius: 0;
+  background: #FEFFF1;
+  padding: 15px;
+  min-height: 200px;
+}
+
+.outfit-pieces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.outfit-piece-card {
+  background: white;
+  border: 1px solid #0C20F4;
+  border-radius: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.outfit-piece-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(12, 32, 244, 0.2);
+}
+
+.piece-type-badge {
+  background: #0C20F4;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  display: inline-block;
+  width: fit-content;
+  letter-spacing: 0.5px;
+}
+
+.piece-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  margin-top: 4px;
+}
+
+.piece-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.piece-color,
+.piece-style {
+  display: flex;
+  gap: 4px;
+}
+
+.color-label,
+.style-label {
+  font-weight: 600;
+  color: #0C20F4;
+}
+
+.piece-additional-details {
+  font-size: 10px;
+  color: #888;
+  font-style: italic;
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+.pieces-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 15px;
+  min-height: 200px;
+}
+
+.pieces-loading p {
+  font-size: 14px;
+  color: #666;
+  font-family: 'P22 Mackinac Pro', serif;
+}
+
 /* Placeholder icon */
 .placeholder-icon {
   margin-top: 50px;
@@ -1391,6 +1490,23 @@ body {
 
   .outfit-blurb .recreation-tips {
     text-align: left;
+  }
+
+  .outfit-pieces-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .outfit-piece-card {
+    padding: 10px;
+  }
+
+  .piece-name {
+    font-size: 13px;
+  }
+
+  .piece-details {
+    font-size: 10px;
   }
 }
 

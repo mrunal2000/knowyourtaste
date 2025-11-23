@@ -11,8 +11,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -32,39 +31,53 @@ export default async function handler(req, res) {
       model: "gpt-4o",
       messages: [
         {
+          role: "system",
+          content: `
+You are a fashion stylist AI. Analyze the outfit metadata in detail. 
+
+Instructions:
+- Focus ONLY on concrete style elements: colors, patterns, textures, accessories, and overall vibe.
+- Be precise: mention standout pieces or combinations (e.g., "bright mustard jacket," "floral midi dress," "chunky sneakers").
+- Avoid vague adjectives like "edgy" or "relaxed."
+- Start the message with "You seem to like..."
+- Keep it friendly, encouraging, and under 100 characters.
+- Examples:
+  • "You seem to like mustard jackets paired with statement sneakers"
+  • "You seem to like floral dresses with delicate, pastel accessories"
+`
+        },
+        {
           role: "user",
-          content: `Based on this outfit analysis: "${metadata}", generate a personalized message that starts with "You seem to like..." and describes what the user likes about this outfit's style. Focus ONLY on the style elements, colors, aesthetic, and overall vibe - NOT on how to recreate it. Keep it friendly, encouraging, and under 100 characters. Examples: "You seem to like bold color combinations and statement pieces" or "You seem to like elegant, minimalist styles with clean lines".`
+          content: `Outfit metadata: "${metadata}"`
         }
       ],
-      max_tokens: 100
+      max_tokens: 100,
+      temperature: 0.7
     });
 
-    const message = response.choices[0].message.content;
+    let message = response.choices[0].message.content.trim();
+
+    // Ensure message is <= 100 characters
+    if (message.length > 100) {
+      message = message.slice(0, 97) + '...';
+    }
+
     console.log('Generated like message:', message);
 
     res.status(200).json({ message });
+
   } catch (error) {
     console.error('OpenAI API error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      type: error.type
-    });
-    
+
     if (error.code === 'insufficient_quota') {
-      return res.status(402).json({ 
-        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.' 
-      });
-    }
-    
-    if (error.code === 'invalid_api_key') {
-      return res.status(401).json({ 
-        error: 'Invalid OpenAI API key. Please check your configuration.' 
-      });
+      return res.status(402).json({ error: 'OpenAI API quota exceeded. Please check your billing.' });
     }
 
-    res.status(500).json({ 
+    if (error.code === 'invalid_api_key') {
+      return res.status(401).json({ error: 'Invalid OpenAI API key. Please check your configuration.' });
+    }
+
+    res.status(500).json({
       error: 'Failed to generate like message. Please try again.',
       details: error.message
     });
