@@ -77,7 +77,25 @@ function App() {
   const [draggedBox, setDraggedBox] = useState<string | null>(null);
   
   // State for flower positions
-  const [flowerPositions, setFlowerPositions] = useState<Array<{x: number, y: number, flowerIndex: number, rotation: number, scale: number, opacity: number}>>([]);
+  const [flowerPositions, setFlowerPositions] = useState<Array<{x: number, y: number, flowerIndex: number, rotation: number, scale: number, opacity: number, originalOpacity: number}>>([]);
+  
+  // Function to rotate flowers randomly on like click
+  const rotateFlowers = () => {
+    // First, increase opacity to 60% and rotate 360 degrees
+    setFlowerPositions(prev => prev.map(flower => ({
+      ...flower,
+      rotation: flower.rotation + (Math.random() < 0.5 ? 360 : -360), // Rotate full circle randomly clockwise or counterclockwise
+      opacity: 0.6 // Set opacity to 60% during rotation
+    })));
+    
+    // After animation completes (0.5s), return to original opacity
+    setTimeout(() => {
+      setFlowerPositions(prev => prev.map(flower => ({
+        ...flower,
+        opacity: flower.originalOpacity // Return to original opacity
+      })));
+    }, 500); // Match the CSS transition duration
+  };
   
   // Flag to ensure insights are only generated once per session
 
@@ -371,13 +389,15 @@ function App() {
             window.innerHeight - flowerSize / 2
           ));
           
+          const originalOpacity = 0.15 + Math.random() * 0.1; // Random opacity between 15% and 25%
           positions.push({
             x: x,
             y: y,
             flowerIndex: Math.floor(Math.random() * 4) + 1, // Random flower 1-4
             rotation: Math.random() * 360, // Random rotation 0-360 degrees
             scale: 0.5 + Math.random() * 0.8, // Random scale between 0.5 and 1.3 for more variety
-            opacity: 0.1 + Math.random() * 0.1 // Random opacity between 15% and 25%
+            opacity: originalOpacity,
+            originalOpacity: originalOpacity // Store original opacity for restoration
           });
         }
       }
@@ -691,6 +711,9 @@ function App() {
   };
 
   const handleLikeClick = () => {
+    // Rotate flowers randomly when like is clicked
+    rotateFlowers();
+    
     // Add current image immediately to liked images
     const currentImage = getCurrentImages()[currentImageIndex]
     
