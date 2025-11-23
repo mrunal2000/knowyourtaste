@@ -3,15 +3,6 @@
     "api/analyze.js": {
       "maxDuration": 30
     },
-    "api/analyze-image.js": {
-      "maxDuration": 30
-    },
-    "api/extract-outfit-pieces.js": {
-      "maxDuration": 30
-    },
-    "api/remove-background.js": {
-      "maxDuration": 30
-    },
     "api/like-message.js": {
       "maxDuration": 15
     },

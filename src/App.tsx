@@ -2,27 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import './App.css'
 
-interface OutfitPiece {
-  type: string
-  name: string
-  color: string
-  style: string
-  details: string
-  location?: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
-  croppedImageUrl?: string
-}
-
 interface ImageWithMetadata {
   image: string
   metadata: string
   timestamp: Date
   likeMessage?: string
-  outfitPieces?: OutfitPiece[]
 }
 
 function App() {
@@ -65,18 +49,16 @@ function App() {
   })
   const [likedImages, setLikedImages] = useState<ImageWithMetadata[]>(() => {
     const saved = loadFromLocalStorage(STORAGE_KEYS.LIKED_IMAGES, []);
-    // Convert timestamp strings back to Date objects and preserve outfitPieces
+    // Convert timestamp strings back to Date objects
     return saved.map((item: any) => ({
       ...item,
-      timestamp: new Date(item.timestamp),
-      outfitPieces: item.outfitPieces || undefined // Preserve outfitPieces if they exist
+      timestamp: new Date(item.timestamp)
     }));
   })
 
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
-  const [extractingPieces, setExtractingPieces] = useState<Set<string>>(new Set());
   
   // New state for color insights and clothing preferences
   const [colorInsights, setColorInsights] = useState<string>('');
@@ -604,297 +586,6 @@ function App() {
     setDraggedBox(null);
   };
 
-  // Remove background from an image using improved algorithm
-  const removeBackground = async (imageUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        const width = canvas.width;
-        const height = canvas.height;
-
-        // Sample corner pixels to determine background color
-        const sampleCorners = [
-          data[0], data[1], data[2], // top-left
-          data[(width - 1) * 4], data[(width - 1) * 4 + 1], data[(width - 1) * 4 + 2], // top-right
-          data[(height - 1) * width * 4], data[(height - 1) * width * 4 + 1], data[(height - 1) * width * 4 + 2], // bottom-left
-          data[((height - 1) * width + width - 1) * 4], data[((height - 1) * width + width - 1) * 4 + 1], data[((height - 1) * width + width - 1) * 4 + 2] // bottom-right
-        ];
-
-        // Calculate average background color from corners
-        let avgR = 0, avgG = 0, avgB = 0;
-        for (let i = 0; i < sampleCorners.length; i += 3) {
-          avgR += sampleCorners[i];
-          avgG += sampleCorners[i + 1];
-          avgB += sampleCorners[i + 2];
-        }
-        avgR /= 4;
-        avgG /= 4;
-        avgB /= 4;
-
-        // Remove background pixels that are similar to the corner colors
-        const threshold = 30; // Color difference threshold
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // Calculate color distance from background
-          const colorDistance = Math.sqrt(
-            Math.pow(r - avgR, 2) + 
-            Math.pow(g - avgG, 2) + 
-            Math.pow(b - avgB, 2)
-          );
-          
-          // Also check if it's a very light/white pixel (common background)
-          const brightness = (r + g + b) / 3;
-          const isVeryLight = brightness > 230;
-          
-          // Make pixel transparent if it's similar to background or very light
-          if (colorDistance < threshold || isVeryLight) {
-            // Use a soft edge - gradually fade transparency
-            const alpha = Math.min(1, colorDistance / threshold);
-            data[i + 3] = Math.floor(alpha * 255);
-          }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-
-        // Convert to PNG to preserve transparency
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            resolve(url);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        }, 'image/png');
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = imageUrl;
-    });
-  };
-
-  // Crop a piece from an image based on location percentages with padding
-  const cropPieceFromImage = async (imagePath: string, location: {x: number, y: number, width: number, height: number}): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = async () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
-
-        // Convert percentages to pixel coordinates
-        let x = (location.x / 100) * img.width;
-        let y = (location.y / 100) * img.height;
-        let width = (location.width / 100) * img.width;
-        let height = (location.height / 100) * img.height;
-
-        // Add padding (15% of the piece size) to ensure we capture the full piece
-        const paddingX = width * 0.15;
-        const paddingY = height * 0.15;
-        
-        // Adjust coordinates with padding, but stay within image bounds
-        x = Math.max(0, x - paddingX);
-        y = Math.max(0, y - paddingY);
-        width = Math.min(img.width - x, width + (paddingX * 2));
-        height = Math.min(img.height - y, height + (paddingY * 2));
-
-        // Ensure minimum dimensions
-        width = Math.max(width, 50);
-        height = Math.max(height, 50);
-
-        // Set canvas size to cropped dimensions
-        canvas.width = width;
-        canvas.height = height;
-
-        // Draw the cropped portion with better quality
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
-
-        // Convert to blob URL first
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            const croppedUrl = URL.createObjectURL(blob);
-            // Remove background from the cropped image
-            try {
-              const bgRemovedUrl = await removeBackground(croppedUrl);
-              // Clean up the intermediate blob
-              URL.revokeObjectURL(croppedUrl);
-              resolve(bgRemovedUrl);
-            } catch (error) {
-              console.error('Failed to remove background, using cropped image:', error);
-              resolve(croppedUrl);
-            }
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        }, 'image/jpeg', 0.95);
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = imagePath;
-    });
-  };
-
-  // Extract outfit pieces from an image using OpenAI API
-  const extractOutfitPieces = useCallback(async (imagePath: string, updateState: boolean = false): Promise<OutfitPiece[]> => {
-    try {
-      if (updateState) {
-        setExtractingPieces(prev => new Set(prev).add(imagePath));
-      }
-
-      // Convert image to base64 for API
-      const response = await fetch(imagePath);
-      const blob = await response.blob();
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
-        };
-        reader.readAsDataURL(blob);
-      });
-
-      // Use localhost for local testing, production API for deployed app
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiUrl = isLocalhost ? 'http://localhost:3002/api/extract-outfit-pieces' : '/api/extract-outfit-pieces';
-      
-      console.log('🔍 Extracting outfit pieces from image:', imagePath);
-      
-      const extractResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: base64
-        }),
-      });
-
-      if (!extractResponse.ok) {
-        const errorText = await extractResponse.text();
-        console.error('❌ Extract API error:', extractResponse.status, errorText);
-        throw new Error(`Extract API failed: ${extractResponse.status} - ${errorText}`);
-      }
-
-      const extractData = await extractResponse.json();
-      console.log(`✅ Extracted ${extractData.outfitPieces?.length || 0} outfit pieces:`, extractData);
-      console.log('📦 Full response:', JSON.stringify(extractData, null, 2));
-      
-      let pieces = extractData.outfitPieces || [];
-      console.log(`📋 Pieces array:`, pieces);
-      console.log(`📊 Pieces length:`, pieces.length);
-      
-      // Crop images for pieces that have location data
-      if (pieces.length > 0) {
-        const piecesWithImages = await Promise.all(
-          pieces.map(async (piece: OutfitPiece) => {
-            if (piece.location) {
-              try {
-                const croppedUrl = await cropPieceFromImage(imagePath, piece.location);
-                return { ...piece, croppedImageUrl: croppedUrl };
-              } catch (error) {
-                console.error(`Failed to crop piece ${piece.name}:`, error);
-                return piece;
-              }
-            }
-            return piece;
-          })
-        );
-        pieces = piecesWithImages;
-      }
-      
-      // Update the liked images with the extracted pieces
-      // Use empty array if no pieces found to mark as "processed" and prevent re-extraction
-      if (updateState) {
-        console.log(`💾 Updating state for image: ${imagePath} with ${pieces.length} pieces`);
-        setLikedImages(prev => {
-          const updated = prev.map(item => {
-            if (item.image === imagePath) {
-              const updatedItem = { ...item, outfitPieces: pieces.length > 0 ? pieces : [] };
-              console.log('🔄 Updated item:', updatedItem);
-              return updatedItem;
-            }
-            return item;
-          });
-          console.log('📸 Updated likedImages:', updated);
-          return updated;
-        });
-        
-        // Remove from extracting set
-        setExtractingPieces(prev => {
-          const next = new Set(prev);
-          next.delete(imagePath);
-          return next;
-        });
-      }
-      
-      return pieces;
-      
-    } catch (error) {
-      console.error('❌ Error extracting outfit pieces:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        imagePath,
-        updateState
-      });
-      
-      // Even on error, mark as processed with empty array to prevent infinite retries
-      if (updateState) {
-        setLikedImages(prev => prev.map(item => 
-          item.image === imagePath 
-            ? { ...item, outfitPieces: [] }
-            : item
-        ));
-        
-        setExtractingPieces(prev => {
-          const next = new Set(prev);
-          next.delete(imagePath);
-          return next;
-        });
-      }
-      return [];
-    }
-  }, []);
-
-  // Extract outfit pieces for existing images that don't have them yet
-  useEffect(() => {
-    if (activeTab === 'your wall' && likedImages.length > 0) {
-      const imagesNeedingExtraction = likedImages.filter(item => 
-        !item.outfitPieces && 
-        !extractingPieces.has(item.image) && 
-        !item.image.includes('/shoes/')
-      );
-      
-      if (imagesNeedingExtraction.length > 0) {
-        console.log(`🔄 Extracting pieces for ${imagesNeedingExtraction.length} images`);
-        imagesNeedingExtraction.forEach(item => {
-          extractOutfitPieces(item.image, true);
-        });
-      }
-    }
-    // Only run when tab changes or when new images are added (not when pieces are updated)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, likedImages.length]);
-
   // Generate detailed metadata for an image using GPT Vision analysis
   const generateDetailedMetadata = async (imagePath: string, imageIndex: number): Promise<string> => {
     const filename = imagePath.split('/').pop() || '';
@@ -983,17 +674,13 @@ function App() {
     }, 300);
     
     // Run detailed analysis in the background (non-blocking)
-    Promise.all([
-      generateDetailedMetadata(currentImage, currentImageIndex),
-      extractOutfitPieces(currentImage, false)
-    ]).then(([detailedMetadata, outfitPieces]) => {
+    generateDetailedMetadata(currentImage, currentImageIndex).then(detailedMetadata => {
       console.log(`📸 Generated metadata for image ${currentImageIndex + 1}:`, detailedMetadata);
-      console.log(`👕 Extracted ${outfitPieces.length} outfit pieces:`, outfitPieces);
       
-      // Update the image with detailed metadata and outfit pieces
+      // Update the image with detailed metadata
       setLikedImages(prev => prev.map(item => 
         item.image === currentImage 
-          ? { ...item, metadata: detailedMetadata, outfitPieces }
+          ? { ...item, metadata: detailedMetadata }
           : item
       ));
       
@@ -1009,7 +696,7 @@ function App() {
         console.error('Failed to generate like message:', error);
       });
     }).catch(error => {
-      console.error('Failed to generate detailed metadata or extract pieces:', error);
+      console.error('Failed to generate detailed metadata:', error);
     });
   }
 
@@ -1240,152 +927,44 @@ function App() {
                 // Filter out shoes
                 return !item.image.includes('/shoes/');
               })
-              .map((item, index) => {
-                // Debug logging
-                if (index === 0) {
-                  console.log('🔍 Rendering item:', {
-                    image: item.image,
-                    hasPieces: !!item.outfitPieces,
-                    piecesLength: item.outfitPieces?.length || 0,
-                    pieces: item.outfitPieces,
-                    isExtracting: extractingPieces.has(item.image)
-                  });
-                }
-                
-                return (
+              .map((item, index) => (
               <div 
                 key={index} 
                 className={`liked-image-container ${clickedImageIndex === index && selectedImageBlurb ? 'expanded' : ''}`}
               >
-                {(() => {
-                  const hasPieces = item.outfitPieces && Array.isArray(item.outfitPieces) && item.outfitPieces.length > 0;
-                  const isExtracting = extractingPieces.has(item.image);
-                  
-                  // Debug: log the condition
-                  if (index === 0) {
-                    console.log('🎯 Display decision:', {
-                      image: item.image,
-                      hasPieces,
-                      piecesCount: item.outfitPieces?.length || 0,
-                      isExtracting,
-                      willShowPieces: hasPieces && !isExtracting
-                    });
-                  }
-                  
-                  if (isExtracting) {
-                    // Show loading state while extracting
-                    return (
-                      <div className="outfit-pieces-container">
-                        <div className="pieces-loading">
+                <div className="image-wrapper">
+                  <img 
+                    src={item.image} 
+                    alt={`Liked outfit ${index + 1}`}
+                    className="liked-image"
+                    onClick={() => handleImageClick(item.metadata, index)}
+                  />
+                  <button 
+                    className="hanger-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleImageClick(item.metadata, index);
+                    }}
+                    title="Get outfit tips"
+                  >
+                    🧥 Get Tips
+                  </button>
+                  {clickedImageIndex === index && selectedImageBlurb && (
+                    <div className="outfit-blurb">
+                      {isGeneratingBlurb ? (
+                        <div className="blurb-loading">
                           <div className="loading-spinner"></div>
-                          <p>Extracting outfit pieces...</p>
+                          Generating outfit tips...
                         </div>
-                      </div>
-                    );
-                  } else if (hasPieces) {
-                    // Show outfit pieces
-                    return (
-                      <div className="outfit-pieces-container">
-                        <div className="outfit-pieces-grid">
-                          {item.outfitPieces!.map((piece, pieceIndex) => (
-                            <div key={pieceIndex} className="outfit-piece-card">
-                              {piece.croppedImageUrl ? (
-                                <div className="piece-image-wrapper">
-                                  <img 
-                                    src={piece.croppedImageUrl} 
-                                    alt={piece.name || piece.type}
-                                    className="piece-image"
-                                  />
-                                  <div className="piece-type-badge-overlay">{piece.type || 'item'}</div>
-                                </div>
-                              ) : (
-                                <div className="piece-type-badge">{piece.type || 'item'}</div>
-                              )}
-                              <div className="piece-name">{piece.name || 'Unknown piece'}</div>
-                              <div className="piece-details">
-                                {piece.color && (
-                                  <div className="piece-color">
-                                    <span className="color-label">Color:</span> {piece.color}
-                                  </div>
-                                )}
-                                {piece.style && (
-                                  <div className="piece-style">
-                                    <span className="style-label">Style:</span> {piece.style}
-                                  </div>
-                                )}
-                                {piece.details && (
-                                  <div className="piece-additional-details">{piece.details}</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                      ) : (
+                        <div className="blurb-content">
+                          <h4>How to Recreate This Look:</h4>
+                          <div className="recreation-tips" dangerouslySetInnerHTML={{ __html: formatTipsAsNumberedList(selectedImageBlurb) }} />
                         </div>
-                    <button 
-                      className="hanger-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleImageClick(item.metadata, index);
-                      }}
-                      title="Get outfit tips"
-                    >
-                      🧥 Get Tips
-                    </button>
-                    {clickedImageIndex === index && selectedImageBlurb && (
-                      <div className="outfit-blurb">
-                        {isGeneratingBlurb ? (
-                          <div className="blurb-loading">
-                            <div className="loading-spinner"></div>
-                            Generating outfit tips...
-                          </div>
-                        ) : (
-                          <div className="blurb-content">
-                            <h4>How to Recreate This Look:</h4>
-                            <div className="recreation-tips" dangerouslySetInnerHTML={{ __html: formatTipsAsNumberedList(selectedImageBlurb) }} />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                      </div>
-                    );
-                  } else {
-                    // Fallback to showing full image
-                    return (
-                      <div className="image-wrapper">
-                    <img 
-                      src={item.image} 
-                      alt={`Liked outfit ${index + 1}`}
-                      className="liked-image"
-                      onClick={() => handleImageClick(item.metadata, index)}
-                    />
-                    <button 
-                      className="hanger-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleImageClick(item.metadata, index);
-                      }}
-                      title="Get outfit tips"
-                    >
-                      🧥 Get Tips
-                    </button>
-                    {clickedImageIndex === index && selectedImageBlurb && (
-                      <div className="outfit-blurb">
-                        {isGeneratingBlurb ? (
-                          <div className="blurb-loading">
-                            <div className="loading-spinner"></div>
-                            Generating outfit tips...
-                          </div>
-                        ) : (
-                          <div className="blurb-content">
-                            <h4>How to Recreate This Look:</h4>
-                            <div className="recreation-tips" dangerouslySetInnerHTML={{ __html: formatTipsAsNumberedList(selectedImageBlurb) }} />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                    );
-                  }
-                })()}
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="polaroid">
                   <div className="polaroid-metadata">
                     <div className="metadata-summary">
@@ -1404,8 +983,7 @@ function App() {
                   </div>
                 </div>
               </div>
-            );
-            })}
+            ))}
           </div>
         </div>
       )}
