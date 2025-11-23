@@ -76,6 +76,9 @@ function App() {
   // State for tracking which box is being dragged
   const [draggedBox, setDraggedBox] = useState<string | null>(null);
   
+  // State for flower positions
+  const [flowerPositions, setFlowerPositions] = useState<Array<{x: number, y: number, flowerIndex: number, rotation: number, scale: number, opacity: number}>>([]);
+  
   // Flag to ensure insights are only generated once per session
 
   
@@ -341,6 +344,56 @@ function App() {
       return 'Your clothing style is distinctive and personal!'
     }
   }, [])
+
+  // Generate evenly spaced flower positions on mount
+  useEffect(() => {
+    const generateFlowerPositions = () => {
+      const positions = [];
+      const flowerSize = 60;
+      const spacing = 120; // Reduced spacing for more flowers
+      const cols = Math.floor(window.innerWidth / spacing) + 1; // Add one extra column
+      const rows = Math.floor(window.innerHeight / spacing);
+      
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          // Calculate base position on grid
+          const baseX = (col * spacing) + (spacing / 2);
+          const baseY = (row * spacing) + (spacing / 2);
+          
+          // Add much more randomness for natural look, but keep within bounds
+          const randomOffset = spacing * 0.8; // 80% of spacing for much more variation
+          const x = Math.max(flowerSize / 2, Math.min(
+            baseX + (Math.random() - 0.5) * randomOffset,
+            window.innerWidth - flowerSize / 2
+          ));
+          const y = Math.max(flowerSize / 2, Math.min(
+            baseY + (Math.random() - 0.5) * randomOffset,
+            window.innerHeight - flowerSize / 2
+          ));
+          
+          positions.push({
+            x: x,
+            y: y,
+            flowerIndex: Math.floor(Math.random() * 4) + 1, // Random flower 1-4
+            rotation: Math.random() * 360, // Random rotation 0-360 degrees
+            scale: 0.5 + Math.random() * 0.8, // Random scale between 0.5 and 1.3 for more variety
+            opacity: 0.1 + Math.random() * 0.1 // Random opacity between 15% and 25%
+          });
+        }
+      }
+      setFlowerPositions(positions);
+    };
+    
+    generateFlowerPositions();
+    
+    // Regenerate on window resize
+    const handleResize = () => {
+      generateFlowerPositions();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -780,7 +833,7 @@ function App() {
     <>
       <div className="placeholder-icon">
         <img 
-          src="/Frame 31.png" 
+          src="/logo.png" 
           className="frame-icon"
         />
       </div>
@@ -981,11 +1034,14 @@ function App() {
     <Routes>
       <Route path="/" element={
         <>
+          {/* Dot Grid Background - Outside app container */}
+          {!showSplash && <div className="grid-background"></div>}
+          
           {/* Splash Screen */}
           {showSplash && (
             <div className="splash-screen">
               <div className="splash-content">
-                <img src="/Frame 31.png" alt="Fashion Taster Logo" className="splash-logo" />
+                <img src="/logo.png" alt="Fashion Taster Logo" className="splash-logo" />
                 <h1 className="splash-title">explore your fashion taste</h1>
                 <p className="splash-subtitle">unpack your style and understand what you like. It can be a journey knowing what you like.</p>
               </div>
@@ -995,9 +1051,29 @@ function App() {
           {/* Main App */}
           {!showSplash && (
             <div className="app">
+              {/* Decorative Flowers */}
+              {flowerPositions.map((pos, index) => (
+                <img
+                  key={index}
+                  src={`/flower ${pos.flowerIndex}.png`}
+                  alt={`Flower ${pos.flowerIndex}`}
+                  className="decorative-flower"
+                  style={{
+                    position: 'fixed',
+                    left: `${pos.x}px`,
+                    top: `${pos.y}px`,
+                    zIndex: 1,
+                    pointerEvents: 'none',
+                    opacity: pos.opacity,
+                    transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`,
+                    transformOrigin: 'center'
+                  }}
+                />
+              ))}
+              
               {/* Header with Logo */}
               {/* <div className="header">
-                <img src="/Frame 31.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
+                <img src="/logo.png" alt="Fashion Taster Logo" className="app-logo" onError={(e) => console.error('Logo failed to load:', e)} />
               </div> */}
               
               {/* Tabs */}

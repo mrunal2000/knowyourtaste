@@ -233,7 +233,7 @@ body {
 /* App container */
 .app {
   min-height: 100vh;
-  background-color: #FEFFF1;
+  background-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -241,6 +241,23 @@ body {
   /* Remove background-attachment fixed as it can cause issues */
   /* Ensure container grows with content */
   height: auto;
+  position: relative;
+}
+
+/* Dot grid pattern behind flowers */
+.grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #FEFFF1;
+  background-image: radial-gradient(circle, #0000004d 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-repeat: repeat;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
 }
 
 /* Header and Logo */
@@ -621,8 +638,8 @@ body {
   width: 100%;
   height: 300px;
   object-fit: cover;
-  border: 2px solid #0C20F4;
-  border-radius: 0;
+  border: 1.5px solid #0C20F4;
+  border-radius: 10px;
 }
 
 .liked-image:hover {
@@ -672,9 +689,9 @@ body {
   width: 100%;
   min-height: 50px;
   background: #FEFFF1;
-  border: 2px solid #0C20F4;
+  border: 1.5px solid #0C20F4;
   border-top: none;
-  margin-top: -2px;
+  margin-top: -1.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -704,18 +721,48 @@ body {
   white-space: normal;
 }
 
+/* Decorative Flowers */
+.decorative-flower {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.decorative-flower:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
 /* Placeholder icon */
 .placeholder-icon {
-  margin-top: 50px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
 .frame-icon {
-  width: 80px;
-  height: 80px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
+}
+
+.logo-tagline {
+  font-family: 'P22 Mackinac Pro', 'P22 Mackinac', serif;
+  font-size: 18px;
+  color: #0C20F4;
+  font-weight: 500;
+  text-transform: lowercase;
+  margin: 0;
+  letter-spacing: 0.5px;
 }
 
 /* Content container */
@@ -727,6 +774,7 @@ body {
   margin-top: 30px;
   justify-content: center;
   position: relative;
+  z-index: 100;
 }
 
 /* Filter buttons */
@@ -804,12 +852,14 @@ body {
 .image-box-container {
   padding: 20px;
   background-color: white;
-  border: 3px solid #0C20F4;
+  border: 1.5px solid #0C20F4;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  position: relative;
+  z-index: 100;
 }
 
 /* Image box without shadow */
@@ -817,7 +867,8 @@ body {
   width: 350px;
   height: 450px;
   background-color: #e5e7eb;
-  border: 3px solid #0C20F4;
+  border: 1.5px solid #0C20F4;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -831,6 +882,7 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  border-radius: 10px;
 }
 
 /* Analysis text */
@@ -938,8 +990,8 @@ body {
   font-weight: 600;
   font-family: 'P22 Mackinac Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   border: 2px solid #0C20F4;
-  background-color: #FEFFF1;
-  color: #0C20F4;
+  background-color: #0C20F4;
+  color: white;
   cursor: pointer;
   border-radius: 0;
   transition: all 0.2s ease;
@@ -948,8 +1000,8 @@ body {
 
 .like-button:hover,
 .no-like-button:hover {
-  background-color: #0C20F4;
-  color: #FEFFF1;
+  background-color: #0a1ad9;
+  color: white;
   border-radius: 0;
 }
 
@@ -1953,6 +2005,12 @@ html {
 
 /* Mobile (up to 767px) */
 @media (max-width: 767px) {
+  .decorative-flower {
+    width: 35px;
+    height: 35px;
+    opacity: 0.3;
+  }
+  
   .app {
     padding: 10px;
     min-height: 100vh;
@@ -2010,7 +2068,7 @@ html {
   .image-box {
     width: 280px;
     height: 350px;
-    border-width: 2px;
+    border-width: 1.5px;
   }
 
   .button-row {
@@ -2343,7 +2401,7 @@ html {
 /* High DPI displays */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .image-box {
-    border-width: 2px;
+    border-width: 1.5px;
   }
   
   .insight-box {
