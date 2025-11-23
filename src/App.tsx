@@ -76,25 +76,40 @@ function App() {
   // State for tracking which box is being dragged
   const [draggedBox, setDraggedBox] = useState<string | null>(null);
   
-  // State for flower positions
-  const [flowerPositions, setFlowerPositions] = useState<Array<{x: number, y: number, flowerIndex: number, rotation: number, scale: number, opacity: number, originalOpacity: number}>>([]);
+  // State for falling flowers animation
+  interface FallingFlower {
+    id: number;
+    x: number;
+    flowerIndex: number;
+    rotation: number;
+    scale: number;
+  }
+  const [fallingFlowers, setFallingFlowers] = useState<FallingFlower[]>([]);
   
-  // Function to rotate flowers randomly on like click
-  const rotateFlowers = () => {
-    // First, increase opacity to 60% and rotate 360 degrees
-    setFlowerPositions(prev => prev.map(flower => ({
-      ...flower,
-      rotation: flower.rotation + (Math.random() < 0.5 ? 360 : -360), // Rotate full circle randomly clockwise or counterclockwise
-      opacity: 0.6 // Set opacity to 60% during rotation
-    })));
+  // Function to create falling flowers on like click
+  const createFallingFlowers = () => {
+    const flowerCount = 100; // 100 flowers
     
-    // After animation completes (0.5s), return to original opacity
-    setTimeout(() => {
-      setFlowerPositions(prev => prev.map(flower => ({
-        ...flower,
-        opacity: flower.originalOpacity // Return to original opacity
-      })));
-    }, 500); // Match the CSS transition duration
+    for (let i = 0; i < flowerCount; i++) {
+      const delay = Math.random() * 2000; // Random delay between 0-2 seconds
+      
+      setTimeout(() => {
+        const flower: FallingFlower = {
+          id: Date.now() + i + Math.random() * 1000, // Unique ID
+          x: Math.random() * window.innerWidth, // Random horizontal position
+          flowerIndex: Math.floor(Math.random() * 4) + 1, // Random flower 1-4
+          rotation: Math.random() * 360, // Random starting rotation
+          scale: 1.0 // Fixed scale at 1x
+        };
+        
+        setFallingFlowers(prev => [...prev, flower]);
+        
+        // Remove flower after animation completes (1.5 seconds)
+        setTimeout(() => {
+          setFallingFlowers(prev => prev.filter(f => f.id !== flower.id));
+        }, 1500);
+      }, delay);
+    }
   };
   
   // Flag to ensure insights are only generated once per session
@@ -363,57 +378,6 @@ function App() {
     }
   }, [])
 
-  // Generate evenly spaced flower positions on mount
-  useEffect(() => {
-    const generateFlowerPositions = () => {
-      const positions = [];
-      const flowerSize = 60;
-      const spacing = 120; // Reduced spacing for more flowers
-      const cols = Math.floor(window.innerWidth / spacing) + 1; // Add one extra column
-      const rows = Math.floor(window.innerHeight / spacing);
-      
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          // Calculate base position on grid
-          const baseX = (col * spacing) + (spacing / 2);
-          const baseY = (row * spacing) + (spacing / 2);
-          
-          // Add much more randomness for natural look, but keep within bounds
-          const randomOffset = spacing * 0.8; // 80% of spacing for much more variation
-          const x = Math.max(flowerSize / 2, Math.min(
-            baseX + (Math.random() - 0.5) * randomOffset,
-            window.innerWidth - flowerSize / 2
-          ));
-          const y = Math.max(flowerSize / 2, Math.min(
-            baseY + (Math.random() - 0.5) * randomOffset,
-            window.innerHeight - flowerSize / 2
-          ));
-          
-          const originalOpacity = 0.15 + Math.random() * 0.1; // Random opacity between 15% and 25%
-          positions.push({
-            x: x,
-            y: y,
-            flowerIndex: Math.floor(Math.random() * 4) + 1, // Random flower 1-4
-            rotation: Math.random() * 360, // Random rotation 0-360 degrees
-            scale: 0.5 + Math.random() * 0.8, // Random scale between 0.5 and 1.3 for more variety
-            opacity: originalOpacity,
-            originalOpacity: originalOpacity // Store original opacity for restoration
-          });
-        }
-      }
-      setFlowerPositions(positions);
-    };
-    
-    generateFlowerPositions();
-    
-    // Regenerate on window resize
-    const handleResize = () => {
-      generateFlowerPositions();
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Hide splash screen after 3 seconds
   useEffect(() => {
@@ -711,8 +675,8 @@ function App() {
   };
 
   const handleLikeClick = () => {
-    // Rotate flowers randomly when like is clicked
-    rotateFlowers();
+    // Create falling flowers animation
+    createFallingFlowers();
     
     // Add current image immediately to liked images
     const currentImage = getCurrentImages()[currentImageIndex]
@@ -1074,23 +1038,25 @@ function App() {
           {/* Main App */}
           {!showSplash && (
             <div className="app">
-              {/* Decorative Flowers */}
-              {flowerPositions.map((pos, index) => (
+              {/* Falling Flowers Animation */}
+              {fallingFlowers.map((flower) => (
                 <img
-                  key={index}
-                  src={`/flower ${pos.flowerIndex}.png`}
-                  alt={`Flower ${pos.flowerIndex}`}
-                  className="decorative-flower"
+                  key={flower.id}
+                  src={`/flower ${flower.flowerIndex}.png`}
+                  alt={`Falling flower ${flower.flowerIndex}`}
+                  className="falling-flower"
                   style={{
                     position: 'fixed',
-                    left: `${pos.x}px`,
-                    top: `${pos.y}px`,
-                    zIndex: 1,
+                    left: `${flower.x}px`,
+                    top: '-100px',
+                    zIndex: 2,
                     pointerEvents: 'none',
-                    opacity: pos.opacity,
-                    transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`,
-                    transformOrigin: 'center'
-                  }}
+                    opacity: 0.7,
+                    transform: `rotate(${flower.rotation}deg) scale(${flower.scale})`,
+                    transformOrigin: 'center',
+                    '--fall-rotation': `${flower.rotation}deg`,
+                    '--fall-scale': `${flower.scale}`
+                  } as React.CSSProperties & { '--fall-rotation': string; '--fall-scale': string }}
                 />
               ))}
               
