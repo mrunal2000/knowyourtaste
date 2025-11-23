@@ -67,6 +67,9 @@ function App() {
   const [clothingPreferences, setClothingPreferences] = useState<string>('');
   const [isGeneratingInsights, setIsGeneratingInsights] = useState<boolean>(false);
   
+  // Separate loading state for AI analysis (not for image transitions)
+  const [isAnalyzingAI, setIsAnalyzingAI] = useState<boolean>(false);
+  
   // State for draggable box positions
   const [boxPositions, setBoxPositions] = useState({
     colorInsights: { x: 40, y: 80 },
@@ -79,11 +82,7 @@ function App() {
   
   // Flag to ensure insights are only generated once per session
 
-
-
-
-
-
+  
   // Handle window resize to keep boxes within bounds
   useEffect(() => {
     const handleResize = () => {
@@ -178,7 +177,7 @@ function App() {
     '/cropped/cropped_1d0a99081666f4a119e115f1644479f9.jpg',
     '/cropped/cropped_1dbcb9365ffd38733a59a6ef8103d271.jpg',
     '/cropped/cropped_1e40320294fd6befef0d50b179b49e98.jpg',
-    '/cropped/cropped_220d562e59828a8c287c0c43548d2f6f.jpg',
+    '/cropped/cropped_220d562e59828a8c2870c43548d2f6f.jpg',
     '/cropped/cropped_29cefb0ef7853ed6c6faa68364506b53.jpg',
     '/cropped/cropped_2ce6c8460cdf4109769217e32120ec02.jpg',
     '/cropped/cropped_30d2fe0d9e859c6aac4abdbec48f8b1c.jpg',
@@ -236,10 +235,18 @@ function App() {
   ]
 
 
+  // Get current images based on active filter
+  const getCurrentImages = () => {
+    return images;
+  };
+
+  // Get current image count for random index calculation
+  const getCurrentImageCount = () => {
+    return getCurrentImages().length;
+  };
 
   // Function to generate fashion thesis using GPT API
   const generateFashionThesis = async (metadataList: string[]) => {
-    setIsGeneratingThesis(true)
     console.log('Generating thesis with metadata:', metadataList)
     
     const requestData = { metadata: metadataList };
@@ -279,14 +286,11 @@ function App() {
     } catch (error) {
       console.error('Error generating thesis:', error)
       return 'Your fashion taste is evolving and unique!'
-    } finally {
-      setIsGeneratingThesis(false)
     }
   }
 
   // Generate color insights using GPT API
   const generateColorInsights = async (metadataList: string[]) => {
-    setIsGeneratingInsights(true)
     console.log('Generating color insights with metadata:', metadataList)
     
     const requestData = { metadata: metadataList };
@@ -326,14 +330,11 @@ function App() {
     } catch (error) {
       console.error('Error generating color insights:', error)
       return 'Your color preferences are unique and evolving!'
-    } finally {
-      setIsGeneratingInsights(false)
     }
   }
 
   // Generate clothing preferences using GPT API
   const generateClothingPreferences = useCallback(async (metadataList: string[]) => {
-    setIsGeneratingInsights(true)
     console.log('Generating clothing preferences with metadata:', metadataList)
     
     const requestData = { metadata: metadataList };
@@ -371,8 +372,6 @@ function App() {
     } catch (error) {
       console.error('Error generating clothing preferences:', error)
       return 'Your clothing style is distinctive and personal!'
-    } finally {
-      setIsGeneratingInsights(false)
     }
   }, [])
 
@@ -400,6 +399,14 @@ function App() {
     saveToLocalStorage(STORAGE_KEYS.ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
+  // Handle current image index bounds when filter changes
+  useEffect(() => {
+    const currentCount = getCurrentImageCount();
+    if (currentImageIndex >= currentCount) {
+      setCurrentImageIndex(0);
+    }
+  }, [currentImageIndex]);
+
   // Generate insights whenever liked images change and we're on "Your Wall" page
   useEffect(() => {
     // Clear insights if we don't have enough liked images
@@ -412,9 +419,22 @@ function App() {
     
     // Only generate if we're on "Your Wall" page and have enough liked images
     if (activeTab === 'your wall' && likedImages.length >= 3) {
-      // Add a small delay to prevent rapid regeneration when liking multiple images quickly
+      // Add a longer delay to prevent showing loaders immediately when liking images
       const timeoutId = setTimeout(() => {
-        const metadataList = likedImages.map(item => item.metadata)
+        // Filter images based on current wall filter
+        const filteredImages = likedImages.filter(item => {
+          return !item.image.includes('/shoes/');
+        });
+
+        // Only proceed if we have enough filtered images
+        if (filteredImages.length < 2) {
+          setFashionThesis('')
+          setColorInsights('')
+          setClothingPreferences('')
+          return;
+        }
+
+        const metadataList = filteredImages.map(item => item.metadata)
         console.log('🚀 REGENERATING INSIGHTS: Liked images changed')
         console.log('📊 Metadata count:', metadataList.length)
         console.log('📝 ACTUAL METADATA BEING SENT TO AI:')
@@ -422,9 +442,8 @@ function App() {
           console.log(`Image ${index + 1}:`, metadata.substring(0, 200) + '...')
         })
         
-        // Set loading states
-        setIsGeneratingThesis(true)
-        setIsGeneratingInsights(true)
+        // Set AI analysis loading state (not immediate image transition loading)
+        setIsAnalyzingAI(true)
         
         // Generate all insights in parallel for speed
         Promise.all([
@@ -445,11 +464,10 @@ function App() {
           setColorInsights('Unable to analyze color preferences at this time.')
           setClothingPreferences('Unable to analyze style preferences at this time.')
         }).finally(() => {
-          // Clear loading states
-          setIsGeneratingInsights(false)
-          setIsGeneratingThesis(false)
+          // Clear AI analysis loading state
+          setIsAnalyzingAI(false)
         })
-      }, 1000) // 1 second delay
+      }, 2000) // 2 second delay to avoid showing loaders immediately when liking
       
       // Cleanup timeout if component unmounts or effect runs again
       return () => clearTimeout(timeoutId)
@@ -611,7 +629,11 @@ function App() {
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocalhost ? 'http://localhost:3002/api/analyze-image' : '/api/analyze-image';
       
-      console.log('🔍 Analyzing image with GPT Vision:', filename);
+      console.log(`🔍 Analyzing image with GPT Vision: ${filename}`);
+      
+      // Determine the category for the image
+      let category = 'outfit';
+      let categoryPrompt = 'This is an OUTFIT image. Analyze the complete outfit including tops, bottoms, outerwear, accessories, and overall style. Focus on clothing items, colors, silhouettes, and styling.';
       
       const visionResponse = await fetch(apiUrl, {
         method: 'POST',
@@ -621,7 +643,9 @@ function App() {
         body: JSON.stringify({
           image: base64,
           filename: filename,
-          imageIndex: imageIndex
+          imageIndex: imageIndex,
+          category: category,
+          categoryPrompt: categoryPrompt
         }),
       });
 
@@ -630,7 +654,7 @@ function App() {
       }
 
       const visionData = await visionResponse.json();
-      console.log('✅ GPT Vision analysis result:', visionData);
+      console.log(`✅ GPT Vision analysis result for ${category}:`, visionData);
       
       // Log the API call for analysis
       
@@ -650,7 +674,7 @@ function App() {
 
   const handleLikeClick = () => {
     // Add current image immediately to liked images
-    const currentImage = images[currentImageIndex]
+    const currentImage = getCurrentImages()[currentImageIndex]
     
     // Create a temporary entry with basic info
     const tempImageWithMetadata: ImageWithMetadata = {
@@ -668,7 +692,7 @@ function App() {
 
     // Move to next image quickly
     setTimeout(() => {
-      setCurrentImageIndex((prev: number) => (prev + 1) % images.length);
+      setCurrentImageIndex((prev: number) => (prev + 1) % getCurrentImageCount());
     }, 300);
     
     // Run detailed analysis in the background (non-blocking)
@@ -701,7 +725,7 @@ function App() {
   const handleNoLikeClick = () => {
     // Move to next image quickly
     setTimeout(() => {
-      setCurrentImageIndex((prev: number) => (prev + 1) % images.length);
+      setCurrentImageIndex((prev: number) => (prev + 1) % getCurrentImageCount());
     }, 300);
   }
 
@@ -713,7 +737,7 @@ function App() {
     setColorInsights('');
     setClothingPreferences('');
     // Start from a random image instead of always starting from 0
-    setCurrentImageIndex(Math.floor(Math.random() * 59));
+    setCurrentImageIndex(Math.floor(Math.random() * getCurrentImageCount()));
     setSelectedImageBlurb('');
     setClickedImageIndex(null);
     
@@ -798,39 +822,39 @@ function App() {
       </div>
       
       <div className="content-container">
-        <div className="image-box">
-          <img 
-            src={images[currentImageIndex]}
-            alt={`Fashion image ${currentImageIndex + 1}`}
-            className="screenshot-image"
-            onError={(e) => {
-              console.error('Image failed to load');
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              // Add fallback text
-              const fallback = document.createElement('div');
-              fallback.textContent = 'Image not found';
-              fallback.style.cssText = 'color: #666; font-size: 16px; text-align: center;';
-              target.parentNode?.appendChild(fallback);
-            }}
-            onLoad={() => {
-              console.log('Image loaded successfully');
-            }}
-          />
+        <div className="image-box-container">
+          <div className="image-box">
+            <img 
+              src={getCurrentImages()[currentImageIndex]}
+              alt={`Fashion image ${currentImageIndex + 1}`}
+              className="screenshot-image"
+              onError={(e) => {
+                console.error('Image failed to load');
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                // Add fallback text
+                const fallback = document.createElement('div');
+                fallback.textContent = 'Image not found';
+                fallback.style.cssText = 'color: #666; font-size: 16px; text-align: center;';
+                target.parentNode?.appendChild(fallback);
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully');
+              }}
+            />
+          </div>
+          <div className="button-row">
+            <button className="like-button" onClick={handleLikeClick}>
+              like
+            </button>
+            <button className="no-like-button" onClick={handleNoLikeClick}>
+              no like
+            </button>
+          </div>
         </div>
-
-
       </div>
 
       <div className="button-container">
-        <div className="button-row">
-          <button className="like-button" onClick={handleLikeClick}>
-            like
-          </button>
-          <button className="no-like-button" onClick={handleNoLikeClick}>
-            no like
-          </button>
-        </div>
         <button className="reset-button" onClick={handleResetAll}>
           🔄 reset all
         </button>
@@ -848,7 +872,6 @@ function App() {
       onMouseLeave={handleMouseUp}
     >
 
-
       {/* Container for draggable insight boxes */}
       <div className="insights-container">
         {/* Color Insights Box - Always Visible */}
@@ -859,7 +882,7 @@ function App() {
         >
         <h3>Your Color Palette</h3>
         <div className="insight-content">
-          {isGeneratingInsights ? (
+          {isAnalyzingAI ? (
             <div className="insight-loading">
               <div className="loading-spinner"></div>
               Analyzing your color preferences...
@@ -892,7 +915,7 @@ function App() {
       >
         <h3>Your Style Blueprint</h3>
         <div className="insight-content">
-          {isGeneratingInsights ? (
+          {isAnalyzingAI ? (
             <div className="insight-loading">
               <div className="loading-spinner"></div>
               Analyzing your style preferences...
@@ -918,7 +941,7 @@ function App() {
       >
         <h3>Your Fashion Thesis</h3>
         <div className="insight-content">
-          {isGeneratingThesis ? (
+          {isAnalyzingAI ? (
             <div className="insight-loading">
               <div className="loading-spinner"></div>
               Generating your fashion thesis...
@@ -947,7 +970,12 @@ function App() {
             <h3>Your Liked Outfits</h3>
           </div>
           <div className="images-grid">
-            {likedImages.map((item, index) => (
+            {likedImages
+              .filter(item => {
+                // Filter out shoes
+                return !item.image.includes('/shoes/');
+              })
+              .map((item, index) => (
               <div 
                 key={index} 
                 className={`liked-image-container ${clickedImageIndex === index && selectedImageBlurb ? 'expanded' : ''}`}
@@ -965,7 +993,7 @@ function App() {
                       e.stopPropagation();
                       handleImageClick(item.metadata, index);
                     }}
-                    title="Get outfit recreation tips"
+                    title="Get outfit tips"
                   >
                     🧥 Get Tips
                   </button>
@@ -1053,18 +1081,6 @@ function App() {
 
               {/* Content based on active tab */}
               {activeTab === 'play' ? renderPlayContent() : renderYourWallContent()}
-              
-              {/* Footer */}
-              <footer className="app-footer">
-                <div className="footer-content">
-                  <div className="footer-left">
-                    <p>&copy; 2024 Fashion Taster. All rights reserved.</p>
-                  </div>
-                  <div className="footer-right">
-                    <p className="attribution">* Thanks to all the amazing fashion creators for sharing their incredible style. Photo sources: Pinterest.</p>
-                  </div>
-                </div>
-              </footer>
             </div>
           )}
         </>

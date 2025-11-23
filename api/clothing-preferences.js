@@ -8,6 +8,16 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -54,7 +64,29 @@ ${metadata.join('\n')}`;
 
     res.status(200).json({ preferences });
   } catch (error) {
-    console.error('Error generating clothing preferences:', error);
-    res.status(500).json({ error: 'Failed to generate clothing preferences' });
+    console.error('OpenAI API error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      type: error.type
+    });
+    
+    if (error.code === 'insufficient_quota') {
+      return res.status(402).json({ 
+        error: 'OpenAI API quota exceeded. Please check your OpenAI account billing.' 
+      });
+    }
+    
+    if (error.code === 'invalid_api_key') {
+      return res.status(401).json({ 
+        error: 'Invalid OpenAI API key. Please check your configuration.' 
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'Failed to generate clothing preferences. Please try again.',
+      details: error.message
+    });
   }
 }

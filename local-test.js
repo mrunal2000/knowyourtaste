@@ -380,7 +380,7 @@ Here are the outfit metadata to analyze: "${combinedContext}"`
 // OpenAI analyze-image endpoint (GPT Vision)
 app.post('/api/analyze-image', async (req, res) => {
   try {
-    const { image, filename, imageIndex } = req.body;
+    const { image, filename, imageIndex, category, categoryPrompt } = req.body;
 
     if (!image) {
       return res.status(400).json({ error: 'Image data is required' });
@@ -393,19 +393,40 @@ app.post('/api/analyze-image', async (req, res) => {
       });
     }
 
-    console.log(`🔍 Analyzing image ${imageIndex + 1}: ${filename}`);
+    console.log(`🔍 Analyzing ${category} image ${imageIndex + 1}: ${filename}`);
 
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    // Use GPT Vision to analyze the fashion image
-    const visionResponse = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are a fashion expert who analyzes outfit images and provides detailed, accurate descriptions. Focus on:
+    // Use category-specific system prompt
+    let systemPrompt = '';
+    if (category === 'shoes') {
+      systemPrompt = `You are a fashion expert who analyzes SHOE images and provides detailed, accurate descriptions. Focus ONLY on:
+
+1. **Shoe Type**: Be specific about the type of shoe (sneakers, sandals, boots, heels, flats, etc.)
+2. **Style & Design**: Describe the overall style (casual, formal, trendy, classic, edgy, etc.)
+3. **Heel Height**: If applicable, specify heel height (flat, low, mid, high, platform)
+4. **Materials**: Note the materials used (leather, suede, canvas, mesh, etc.)
+5. **Colors**: Identify the main colors - be specific about color names and combinations
+6. **Details**: Describe straps, buckles, laces, embellishments, patterns, textures
+7. **Fit & Comfort**: Note any comfort features or fit characteristics
+
+CRITICAL: Focus ONLY on the shoes. Ignore any background elements, clothing, accessories, or other items in the image. Only analyze what you see in the shoes themselves.`;
+    } else if (category === 'bag') {
+      systemPrompt = `You are a fashion expert who analyzes BAG/ACCESSORY images and provides detailed, accurate descriptions. Focus on:
+
+1. **Bag Type**: Be specific about the type of bag (crossbody, tote, clutch, backpack, etc.)
+2. **Style & Design**: Describe the overall style (casual, formal, trendy, classic, etc.)
+3. **Size & Shape**: Note the size (small, medium, large) and shape characteristics
+4. **Materials**: Identify the materials used (leather, canvas, nylon, etc.)
+5. **Colors**: Be specific about color names and combinations
+6. **Details**: Describe straps, hardware, pockets, closures, embellishments
+7. **Functionality**: Note any practical features or design elements
+
+If no bag is visible, focus on the overall outfit style and any visible accessories.`;
+    } else {
+      systemPrompt = `You are a fashion expert who analyzes outfit images and provides detailed, accurate descriptions. Focus on:
 
 1. **Clothing Items**: Be specific about tops, bottoms (pants/skirts), outerwear, dresses
 2. **Fit & Silhouette**: Describe the fit (fitted, loose, oversized) and silhouette
@@ -421,16 +442,23 @@ IMPORTANT COLOR ANALYSIS RULES:
 - Be specific about color names (e.g., "navy blue", "cream", "gold", "black", "white", "denim blue")
 - If you see a white shirt, blue jeans, and gold belt - only mention white, blue, and gold
 
-Be precise and avoid generic descriptions. If you see pants, say pants. If you see a skirt, say skirt.`
+Be precise and avoid generic descriptions. If you see pants, say pants. If you see a skirt, say skirt.`;
+    }
+
+    // Use GPT Vision to analyze the fashion image
+    const visionResponse = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analyze this fashion outfit image and provide a detailed description. Focus on what you actually see in the image. Be specific about clothing items, colors, accessories, and style.
-
-CRITICAL: When analyzing colors, ONLY look at the clothing and accessories. Ignore any background colors, wall colors, or environmental elements. Only describe colors from the actual outfit pieces.`
+              text: categoryPrompt || `Analyze this ${category} image and provide a detailed description. Focus on what you actually see in the image. Be specific about the key elements and style characteristics.`
             },
             {
               type: "image_url",
@@ -448,16 +476,17 @@ CRITICAL: When analyzing colors, ONLY look at the clothing and accessories. Igno
 
     const analysis = visionResponse.choices[0].message.content;
     
-    // Format the metadata with the outfit number
-    const metadata = `Outfit ${imageIndex + 1}: ${analysis}`;
+    // Format the metadata with the category and outfit number
+    const metadata = `${category.charAt(0).toUpperCase() + category.slice(1)} ${imageIndex + 1}: ${analysis}`;
 
-    console.log(`✅ Generated metadata for ${filename}:`, metadata.substring(0, 100) + '...');
+    console.log(`✅ Generated ${category} metadata for ${filename}:`, metadata.substring(0, 100) + '...');
 
     res.status(200).json({
       metadata: metadata,
       analysis: analysis,
       filename: filename,
-      imageIndex: imageIndex
+      imageIndex: imageIndex,
+      category: category
     });
 
   } catch (error) {
