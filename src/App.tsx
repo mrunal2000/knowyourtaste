@@ -452,16 +452,25 @@ function App() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Brand suggestions API error response:', errorText);
+        console.error('Response status:', response.status);
         const error = `Failed to generate brand suggestions: ${response.status} - ${errorText}`;
         throw new Error(error);
       }
 
       const data = await response.json();
       console.log('Brand suggestions API response:', data);
+      console.log('Brand suggestions value:', data.brands);
+      console.log('Brand suggestions type:', typeof data.brands);
       
-      return data.brands || 'Explore brands that match your style!';
+      if (!data.brands || (typeof data.brands === 'string' && data.brands.trim() === '')) {
+        console.warn('Brand suggestions API returned empty or invalid response:', data);
+        return 'Explore brands that match your style!';
+      }
+      
+      return data.brands;
     } catch (error) {
-      console.error('Error generating brand suggestions:', error)
+      console.error('Error generating brand suggestions:', error);
+      console.error('Error details:', error instanceof Error ? error.message : error);
       return 'Explore brands that match your style!'
     }
   }, [])
@@ -551,6 +560,7 @@ function App() {
           console.log('Clothing preferences received:', clothingPrefs ? 'Yes' : 'No', clothingPrefs?.substring(0, 50))
           console.log('Fashion thesis received:', thesis ? 'Yes' : 'No', thesis?.substring(0, 50))
           console.log('Brand suggestions received:', brands ? 'Yes' : 'No', brands?.substring(0, 50))
+          console.log('Full brand suggestions value:', brands)
           setColorInsights(colorInsights || '')
           setClothingPreferences(clothingPrefs || '')
           setFashionThesis(thesis || '')

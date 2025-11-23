@@ -17,6 +17,9 @@
     },
     "api/color-insights.js": {
       "maxDuration": 15
+    },
+    "api/brand-suggestion.js": {
+      "maxDuration": 15
     }
   }
 }
