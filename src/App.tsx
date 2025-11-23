@@ -57,7 +57,6 @@ function App() {
   })
 
   const [fashionThesis, setFashionThesis] = useState<string>('');
-  const [isGeneratingThesis, setIsGeneratingThesis] = useState<boolean>(false);
   const [selectedImageBlurb, setSelectedImageBlurb] = useState<string>('');
   const [isGeneratingBlurb, setIsGeneratingBlurb] = useState<boolean>(false);
   const [clickedImageIndex, setClickedImageIndex] = useState<number | null>(null);
@@ -65,7 +64,6 @@ function App() {
   // New state for color insights and clothing preferences
   const [colorInsights, setColorInsights] = useState<string>('');
   const [clothingPreferences, setClothingPreferences] = useState<string>('');
-  const [isGeneratingInsights, setIsGeneratingInsights] = useState<boolean>(false);
   
   // Separate loading state for AI analysis (not for image transitions)
   const [isAnalyzingAI, setIsAnalyzingAI] = useState<boolean>(false);
